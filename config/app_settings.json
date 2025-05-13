@@ -1,0 +1,10 @@
+{
+  "data_dir": "data",
+  "notes_path": "data\\notes.json",
+  "tasks_path": "data\\tasks.json",
+  "flashcards_path": "data\\flashcards.json",
+  "progress_path": "data\\progress.json",
+  "theme_name": "GitHub Inspired Dark",
+  "font_name": "Arial",
+  "font_size": 20
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "test-note-1",
+    "title": "Test Note 1",
+    "content": "This is a test note content with *markdown* support.",
+    "created_at": "2025-05-12T01:31:15.357745",
+    "updated_at": "2025-05-12T01:31:15.357745"
+  },
+  {
+    "id": "test-note-2",
+    "title": "Test Note 2",
+    "content": "Another test note with a **bold** section.",
+    "created_at": "2025-05-12T01:31:15.357745",
+    "updated_at": "2025-05-12T01:31:15.357745"
+  }
+]

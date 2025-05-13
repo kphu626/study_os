@@ -1,0 +1,76 @@
+[2025-05-13 01:14:16,868] [INFO   ] [TEST_RUNNER         ] Initializing Test Runner...
+[2025-05-13 01:14:16,870] [INFO   ] [TEST_RUNNER         ] StudyOS App instance created for testing.
+[2025-05-13 01:14:16,870] [INFO   ] [TEST_RUNNER         ] DPG context created.
+[2025-05-13 01:14:16,870] [INFO   ] [TEST_RUNNER         ] DPG manual_callback_management configured.
+[2025-05-13 01:14:16,870] [INFO   ] [TEST_RUNNER         ] DPG viewport created.
+[2025-05-13 01:14:16,872] [INFO   ] [TEST_RUNNER         ] Modules and registry initialized by StudyOS app.
+[2025-05-13 01:14:16,872] [INFO   ] [ThemeManager        ] Attempting to load 30 common fonts.
+[2025-05-13 01:14:16,873] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Arial.ttf
+[2025-05-13 01:14:16,883] [INFO   ] [ThemeManager        ] Successfully loaded font: Arial (Path: C:\WINDOWS\Fonts\Arial.ttf, Size: 20pt) -> ID: 48
+[2025-05-13 01:14:16,884] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\ariblk.ttf
+[2025-05-13 01:14:16,884] [INFO   ] [ThemeManager        ] Successfully loaded font: Arial Black (Path: C:\WINDOWS\Fonts\ariblk.ttf, Size: 20pt) -> ID: 49
+[2025-05-13 01:14:16,884] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Calibri.ttf
+[2025-05-13 01:14:16,884] [INFO   ] [ThemeManager        ] Successfully loaded font: Calibri (Path: C:\WINDOWS\Fonts\Calibri.ttf, Size: 20pt) -> ID: 50
+[2025-05-13 01:14:16,884] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\cambria.ttc
+[2025-05-13 01:14:16,885] [INFO   ] [ThemeManager        ] Successfully loaded font: Cambria (Path: C:\WINDOWS\Fonts\cambria.ttc, Size: 20pt) -> ID: 51
+[2025-05-13 01:14:16,885] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Candara.ttf
+[2025-05-13 01:14:16,885] [INFO   ] [ThemeManager        ] Successfully loaded font: Candara (Path: C:\WINDOWS\Fonts\Candara.ttf, Size: 20pt) -> ID: 52
+[2025-05-13 01:14:16,885] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\comic.ttf
+[2025-05-13 01:14:16,885] [INFO   ] [ThemeManager        ] Successfully loaded font: Comic Sans MS (Path: C:\WINDOWS\Fonts\comic.ttf, Size: 20pt) -> ID: 53
+[2025-05-13 01:14:16,886] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\consola.ttf
+[2025-05-13 01:14:16,886] [INFO   ] [ThemeManager        ] Successfully loaded font: Consolas (Path: C:\WINDOWS\Fonts\consola.ttf, Size: 20pt) -> ID: 54
+[2025-05-13 01:14:16,887] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\constan.ttf
+[2025-05-13 01:14:16,887] [INFO   ] [ThemeManager        ] Successfully loaded font: Constantia (Path: C:\WINDOWS\Fonts\constan.ttf, Size: 20pt) -> ID: 55
+[2025-05-13 01:14:16,888] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Corbel.ttf
+[2025-05-13 01:14:16,888] [INFO   ] [ThemeManager        ] Successfully loaded font: Corbel (Path: C:\WINDOWS\Fonts\Corbel.ttf, Size: 20pt) -> ID: 56
+[2025-05-13 01:14:16,888] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\cour.ttf
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Successfully loaded font: Courier New (Path: C:\WINDOWS\Fonts\cour.ttf, Size: 20pt) -> ID: 57
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\framd.ttf
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Successfully loaded font: Franklin Gothic Medium (Path: C:\WINDOWS\Fonts\framd.ttf, Size: 20pt) -> ID: 58
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Gabriola.ttf
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Successfully loaded font: Gabriola (Path: C:\WINDOWS\Fonts\Gabriola.ttf, Size: 20pt) -> ID: 59
+[2025-05-13 01:14:16,889] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Gadugi.ttf
+[2025-05-13 01:14:16,890] [INFO   ] [ThemeManager        ] Successfully loaded font: Gadugi (Path: C:\WINDOWS\Fonts\Gadugi.ttf, Size: 20pt) -> ID: 60
+[2025-05-13 01:14:16,890] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Georgia.ttf
+[2025-05-13 01:14:16,890] [INFO   ] [ThemeManager        ] Successfully loaded font: Georgia (Path: C:\WINDOWS\Fonts\Georgia.ttf, Size: 20pt) -> ID: 61
+[2025-05-13 01:14:16,890] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Impact.ttf
+[2025-05-13 01:14:16,891] [INFO   ] [ThemeManager        ] Successfully loaded font: Impact (Path: C:\WINDOWS\Fonts\Impact.ttf, Size: 20pt) -> ID: 62
+[2025-05-13 01:14:16,891] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\lucon.ttf
+[2025-05-13 01:14:16,891] [INFO   ] [ThemeManager        ] Successfully loaded font: Lucida Console (Path: C:\WINDOWS\Fonts\lucon.ttf, Size: 20pt) -> ID: 63
+[2025-05-13 01:14:16,892] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\l_10646.ttf
+[2025-05-13 01:14:16,892] [INFO   ] [ThemeManager        ] Successfully loaded font: Lucida Sans Unicode (Path: C:\WINDOWS\Fonts\l_10646.ttf, Size: 20pt) -> ID: 64
+[2025-05-13 01:14:16,892] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\micross.ttf
+[2025-05-13 01:14:16,892] [INFO   ] [ThemeManager        ] Successfully loaded font: Microsoft Sans Serif (Path: C:\WINDOWS\Fonts\micross.ttf, Size: 20pt) -> ID: 65
+[2025-05-13 01:14:16,893] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\pala.ttf
+[2025-05-13 01:14:16,893] [INFO   ] [ThemeManager        ] Successfully loaded font: Palatino Linotype (Path: C:\WINDOWS\Fonts\pala.ttf, Size: 20pt) -> ID: 66
+[2025-05-13 01:14:16,893] [WARNING] [ThemeManager        ] Font 'Roboto' (as 'Roboto-Regular.ttf') not found in searched system directories.
+[2025-05-13 01:14:16,894] [WARNING] [ThemeManager        ] Font file not found for: Roboto via _find_font_path.
+[2025-05-13 01:14:16,895] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\segoeui.ttf
+[2025-05-13 01:14:16,895] [INFO   ] [ThemeManager        ] Successfully loaded font: Segoe UI (Path: C:\WINDOWS\Fonts\segoeui.ttf, Size: 20pt) -> ID: 67
+[2025-05-13 01:14:16,895] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\segoeuil.ttf
+[2025-05-13 01:14:16,896] [INFO   ] [ThemeManager        ] Successfully loaded font: Segoe UI Light (Path: C:\WINDOWS\Fonts\segoeuil.ttf, Size: 20pt) -> ID: 68
+[2025-05-13 01:14:16,896] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\seguisb.ttf
+[2025-05-13 01:14:16,896] [INFO   ] [ThemeManager        ] Successfully loaded font: Segoe UI Semibold (Path: C:\WINDOWS\Fonts\seguisb.ttf, Size: 20pt) -> ID: 69
+[2025-05-13 01:14:16,896] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\seguihis.ttf
+[2025-05-13 01:14:16,896] [INFO   ] [ThemeManager        ] Successfully loaded font: Segoe UI Historic (Path: C:\WINDOWS\Fonts\seguihis.ttf, Size: 20pt) -> ID: 70
+[2025-05-13 01:14:16,897] [WARNING] [ThemeManager        ] Font 'Sitka Text' (as 'Sitka.ttc') not found in searched system directories.
+[2025-05-13 01:14:16,897] [WARNING] [ThemeManager        ] Font file not found for: Sitka Text via _find_font_path.
+[2025-05-13 01:14:16,897] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Sylfaen.ttf
+[2025-05-13 01:14:16,898] [INFO   ] [ThemeManager        ] Successfully loaded font: Sylfaen (Path: C:\WINDOWS\Fonts\Sylfaen.ttf, Size: 20pt) -> ID: 71
+[2025-05-13 01:14:16,898] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Tahoma.ttf
+[2025-05-13 01:14:16,898] [INFO   ] [ThemeManager        ] Successfully loaded font: Tahoma (Path: C:\WINDOWS\Fonts\Tahoma.ttf, Size: 20pt) -> ID: 72
+[2025-05-13 01:14:16,899] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\times.ttf
+[2025-05-13 01:14:16,900] [INFO   ] [ThemeManager        ] Successfully loaded font: Times New Roman (Path: C:\WINDOWS\Fonts\times.ttf, Size: 20pt) -> ID: 73
+[2025-05-13 01:14:16,900] [INFO   ] [ThemeManager        ] Found system font (mapped): C:\WINDOWS\Fonts\trebuc.ttf
+[2025-05-13 01:14:16,900] [INFO   ] [ThemeManager        ] Successfully loaded font: Trebuchet MS (Path: C:\WINDOWS\Fonts\trebuc.ttf, Size: 20pt) -> ID: 74
+[2025-05-13 01:14:16,900] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Verdana.ttf
+[2025-05-13 01:14:16,900] [INFO   ] [ThemeManager        ] Successfully loaded font: Verdana (Path: C:\WINDOWS\Fonts\Verdana.ttf, Size: 20pt) -> ID: 75
+[2025-05-13 01:14:16,901] [INFO   ] [ThemeManager        ] Finished loading system fonts. Total loaded into _fonts: 28. Available according to available_fonts set: 28
+[2025-05-13 01:14:16,902] [INFO   ] [ThemeManager        ] Found system font: C:\WINDOWS\Fonts\Arial.ttf
+[2025-05-13 01:14:16,903] [INFO   ] [ThemeManager        ] Successfully loaded font: Arial (Path: C:\WINDOWS\Fonts\Arial.ttf, Size: 20pt) -> ID: 115
+[2025-05-13 01:14:16,903] [INFO   ] [TEST_RUNNER         ] Theme Manager initialized by Core.
+[2025-05-13 01:14:16,914] [INFO   ] [TEST_RUNNER         ] DPG UI layout initialized by StudyOS app.
+[2025-05-13 01:14:16,915] [INFO   ] [TEST_RUNNER         ] Dear PyGui setup complete.
+[2025-05-13 01:14:17,182] [INFO   ] [TEST_RUNNER         ] Viewport shown.
+[2025-05-13 01:14:17,183] [INFO   ] [TEST_RUNNER         ] Test frame callback registered. Starting DPG render loop to run 1 tests...
+[2025-05-13 01:14:52,334] [INFO   ] [TEST_RUNNER         ] Test run finished. DPG context destroyed.

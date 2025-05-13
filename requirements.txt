@@ -1,0 +1,4 @@
+pydantic
+numpy
+scikit-learn
+dearpygui
