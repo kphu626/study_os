@@ -1,12 +1,15 @@
-from core.config import AppConfig
-from core.app import StudyOS  # Main application class
-import dearpygui.dearpygui as dpg
+import asyncio
 import logging
-import time
-import sys
 import os
+import sys
+import time
 from pathlib import Path
 from typing import Optional
+
+import dearpygui.dearpygui as dpg
+
+from core.app import StudyOS  # Main application class
+from core.config import AppConfig
 
 # Ensure the app's root directory is in the Python path
 # This allows a_sync_configs.run_tests.py to import modules from the main app
@@ -218,6 +221,23 @@ def main():
 
         dpg.show_viewport()
         logger.info("Viewport shown.")
+
+        # Load the initial module view before starting the test frame callback
+        logger.info("Attempting to load initial module view asynchronously...")
+        try:
+            asyncio.run(app._load_initial_module_view())
+            logger.info("Initial module view loaded.")
+            # Add a frame split and a tiny delay to help DPG process UI changes from the async call
+            dpg.split_frame()
+            time.sleep(0.1)  # Increased slightly to allow for UI processing
+            logger.info("DPG frame split and delay after initial module load.")
+
+        except Exception as e:
+            logger.critical(
+                f"Failed to load initial module view: {e}", exc_info=True)
+            # Decide if tests should be aborted here
+            dpg.destroy_context()
+            return
 
         # Instead of dpg.set_primary_window and dpg.start_dearpygui()...
         # We use a frame callback to run our tests.

@@ -1,0 +1,152 @@
+## Codebase Audit
+
+### 1. Project Root Directory Structure
+
+```
+study_os/
+├── .codebase_nav/
+│   └── interface/
+│       └── index.html
+├── .git/
+├── .github/
+├── .vscode/
+├── config/
+│   └── app_settings.json
+├── core/
+│   ├── __pycache__/
+│   ├── app.py
+│   ├── codebase_guardian.py
+│   ├── command_bar.py
+│   ├── config.py
+│   ├── decorators.py
+│   ├── theme_manager.py
+│   └── __init__.py
+├── data/
+│   ├── notes.json
+│   └── tasks.json
+├── debug_data/
+│   ├── flashcards.json
+│   └── notes.json
+├── directory/
+│   └── codebase_structure.md
+├── modules/
+│   ├── __pycache__/
+│   ├── base_module.py
+│   ├── flashcards_module.py
+│   ├── notes_module.py
+│   ├── progress_module.py
+│   ├── settings_module.py
+│   ├── statistics_module.py
+│   ├── tasks_module.py
+│   └── __init__.py
+├── schemas/
+│   ├── __pycache__/
+│   ├── flashcard_schema.py
+│   ├── note_schemas.py
+│   ├── progress_schema.py
+│   ├── task_create.py
+│   └── __init__.py
+├── .gitattributes
+├── dearpygui_docs.txt
+├── dep_graph.png
+├── main.py
+├── README.md
+├── requirements.txt
+├── run_guardian.py
+├── run_tests.py
+└── test_run.log
+```
+
+### 2. Core Components & Workflow
+
+* **`main.py`**:
+  * Entry point of the application.
+  * Initializes and runs the `StudyOS` application using `asyncio`.
+* **`core/app.py`**:
+  * **`StudyOS` class**: The main application class.
+    * Manages the overall application lifecycle and UI.
+    * Initializes Dear PyGui, sets up the main window, sidebar, and content areas.
+    * Handles module registration and switching between different modules (Notes, Tasks, etc.).
+    * Integrates a `CommandBar`.
+    * Manages UI elements like sidebar toggling, window resizing.
+  * **`Core` class**: A central service container.
+    * Holds application configuration (`AppConfig`).
+    * Manages a `ModuleRegistry`.
+    * Contains an instance of `UnifiedGuardian` (likely for background tasks).
+    * Holds an instance of `ThemeManager`.
+  * **`ModuleRegistry` class**:
+    * A simple dependency injection container for managing application modules.
+* **`core/config.py`**:
+  * **`AppConfig` class (Pydantic Model)**:
+    * Defines application settings (data paths, theme, font).
+    * Handles loading configuration from `config/app_settings.json` and saving it.
+* **`core/theme_manager.py`**:
+  * **`ThemeManager` class**:
+    * Manages UI themes and fonts for Dear PyGui.
+    * Loads system fonts and defines several built-in themes (e.g., "Default Dark", "Microsoft Inspired").
+    * Applies themes and fonts to the application.
+    * Persists theme/font choices via `AppConfig`.
+* **`core/command_bar.py`**:
+  * **`CommandBar` class**: Implements a command bar interface, likely for quick actions and search.
+* **`core/codebase_guardian.py`**:
+  * **`UnifiedGuardian` class**: Appears to be for background monitoring or tasks, possibly file watching or other system interactions.
+* **`core/decorators.py`**: Contains decorators, likely for error handling or other cross-cutting concerns (e.g., `@handle_errors`).
+
+### 3. Modules System
+
+* **`modules/base_module.py`**:
+  * **`BaseModule` class**:
+    * Abstract base class for all functional modules (Notes, Tasks, etc.).
+    * Provides common interface methods like `load_data`, `build_dpg_view`, `build_sidebar_view`, `handle_keyboard`, etc.
+* **Specific Modules (`modules/*_module.py`)**:
+  * Each module (e.g., `NotesModule`, `TaskModule`) inherits from `BaseModule`.
+  * Responsible for its specific domain logic, data management, and UI views within the application.
+  * **`NotesModule` (`modules/notes_module.py`)**:
+    * Manages notes (creating, reading, updating, deleting).
+    * Loads/saves notes from a JSON file (`data/notes.json`).
+    * Uses `Note` Pydantic schemas.
+    * Builds the UI for displaying notes in the sidebar (as a tree/list) and the main content area.
+    * Includes functionality for an editor window, tag management, and filtering.
+    * **Has existing (though perhaps incomplete) DPG setup for context menus on note items in the sidebar (`_handle_note_sidebar_click`, `note_context_menu_tag`, `_context_open_note`, `_context_rename_note_setup`, `_context_delete_note_from_context`).** This is directly relevant to your request.
+
+### 4. Data Schemas
+
+* **`schemas/*.py`**:
+  * Define Pydantic models for data structures used in the application (e.g., notes, tasks, flashcards).
+  * **`schemas/note_schemas.py`**:
+    * `NoteBase`, `NoteCreate`, `Note`: Pydantic models for note data, including fields like `id`, `title`, `content`, `tags`, `created_at`, `updated_at`.
+
+### 5. Application Pipeline (Simplified)
+
+1. **Initialization (`main.py` -> `StudyOS.__init__`)**:
+    * `StudyOS` instance is created.
+    * `Core` instance is created (loads `AppConfig`, initializes `ModuleRegistry`, `UnifiedGuardian`, `ThemeManager`).
+2. **DPG Setup (`StudyOS.run_dpg_app`)**:
+    * Dear PyGui viewport and primary window are created.
+    * `ThemeManager` is initialized (loads fonts, creates themes).
+    * Modules (Notes, Tasks, etc.) are instantiated and registered.
+    * Initial UI layout is built (`_init_dpg_ui_layout`):
+        * Sidebar is created.
+        * `NotesModule.build_sidebar_view` is called to populate the sidebar with the notes tree/list.
+        * Main content area is set up with a tab bar for modules.
+        * Command bar is added.
+    * Global handlers (e.g., keyboard) are set.
+    * Initial module view is loaded.
+3. **Event Loop (`dpg.start_dearpygui()`)**:
+    * Dear PyGui takes over, handling user interactions.
+    * Callbacks associated with UI elements (buttons, menu items, etc.) trigger application logic within `StudyOS` or the active module.
+    * Right-clicking a note in the sidebar (as per existing `NotesModule` code) would trigger `_handle_note_sidebar_click`, which is intended to show a context menu.
+
+### 6. Warnings & Considerations for Your Request
+
+* **Existing Context Menu Code**: The `NotesModule` already has significant DPG setup for context menus on sidebar note items.
+  * `self.note_context_menu_tag`: This tag is used for the context menu window itself.
+  * `self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG`: A handler registry is created for right-clicks on sidebar items.
+  * `_handle_note_sidebar_click()`: This callback is triggered on right-click. It's responsible for populating and showing the context menu (`dpg.configure_item(self.note_context_menu_tag, show=True)` and adding items to it).
+  * Methods like `_context_open_note`, `_context_rename_note_setup`, `_context_delete_note_from_context` are stubs or partial implementations for the actions in this context menu.
+* **Focus on Enhancing Existing Code**: Instead of creating a new context menu system from scratch, your primary task will be to **complete and enhance the existing context menu functionality within `modules/notes_module.py`**.
+  * Ensure `_handle_note_sidebar_click` correctly populates the menu with "Open", "Edit", "Rename", "Delete", "Move" options.
+  * Implement the corresponding action methods (e.g., fully implement `_context_rename_note_execute`, add new methods for "Edit", "Move").
+  * The "Edit" action should likely open the existing editor window (`editor_window` tag in `NotesModule`).
+* **Reusability**: While the immediate request is for notes, consider if this context menu logic could be made more generic if other modules (e.g., a future "Files" module) might need similar right-click actions on tree/list items. For now, focusing on `NotesModule` is fine.
+* **"Move" Functionality**: This will be the most complex to add as it implies a hierarchical structure or different storage locations for notes, which might require changes to data handling and the sidebar display logic. Start with the other options first.
