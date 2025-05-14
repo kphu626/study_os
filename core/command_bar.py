@@ -117,6 +117,17 @@ class CommandBar:
                 "", tag=self.status_message_tag, color=(180, 180, 180, 255)
             )  # Default subtle color
 
+    def set_input_field_text(self, text: str):
+        """Sets the text of the command bar's input field."""
+        if self.input_tag is not None and dpg.does_item_exist(self.input_tag):
+            dpg.set_value(self.input_tag, text)
+            # Optionally, focus the input field after setting text
+            # dpg.focus_item(self.input_tag)
+        else:
+            print(
+                "[CommandBar.set_input_field_text] Error: Input tag not available or does not exist."
+            )
+
     def _process_command_input(self, sender: Any, app_data: Any, user_data: Any):
         if self.input_tag is None:
             print("[CommandBar._process_command_input] Error: input_tag is None.")

@@ -250,7 +250,8 @@ class TaskModule(BaseModule):
 
     def _dpg_toggle_task_completion_callback(self, sender, app_data, user_data):
         task_id = user_data["task_id"]
-        is_completed = app_data  # This is the new state of the checkbox (True/False)
+        # This is the new state of the checkbox (True/False)
+        is_completed = app_data
 
         task_to_update = next((t for t in self.tasks if t.id == task_id), None)
         if task_to_update:

@@ -4,11 +4,7 @@
     "a": "Python is a programming language."
   },
   {
-    "q": "What is Flet?",
-    "a": "Flet is a framework for building Flutter apps with Python."
-  },
-  {
     "q": "What is StudyOS?",
-    "a": "A study application built with Python and Flet."
+    "a": "A study application built with Python and Dear PyGui."
   }
 ]

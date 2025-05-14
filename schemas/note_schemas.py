@@ -8,6 +8,10 @@ class NoteBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     content: str = ""
     tags: Optional[List[str]] = Field(default_factory=list)
+    parent_id: Optional[str] = None
+    is_folder: bool = False
+    order: int = 0
+    icon: Optional[str] = None
 
 
 class NoteCreate(NoteBase):

@@ -16,8 +16,7 @@ class TaskCreate(BaseModel):
             parsed = datetime.fromisoformat(v.strip())
             return v.strip()
         except ValueError:
-            raise ValueError(
-                f"Invalid deadline format: '{v}'. Use YYYY-MM-DD.")
+            raise ValueError(f"Invalid deadline format: '{v}'. Use YYYY-MM-DD.")
 
 
 class TaskResponse(TaskCreate):

@@ -29,8 +29,9 @@ from modules import (
 class Core:
     """Central service container"""
 
-    def __init__(self):
+    def __init__(self, app: "StudyOS"):
         print("[Core.__init__] Initializing Core...")  # ADD LOG
+        self.app = app
         self.config = AppConfig.load_config()
         self.module_registry = ModuleRegistry()
         self.guardian = UnifiedGuardian()
@@ -79,7 +80,7 @@ class StudyOS:
 
     def __init__(self):
         print("[StudyOS.__init__] Initializing StudyOS...")
-        self.core = Core()
+        self.core = Core(self)
         self.current_module_key = None
         self.command_bar = CommandBar(self)
         self.font_size = 16
@@ -166,10 +167,12 @@ class StudyOS:
                 with dpg.group(horizontal=True):  # Main horizontal layout
                     # --- Sidebar (Left) ---
                     with dpg.group(tag=self.SIDEBAR_TAG, width=self.sidebar_width):
-                        dpg.add_text("Sidebar Area")
+                        dpg.add_text("Sidebar")
                         dpg.add_separator()
+
                         # --- Populate Sidebar with Note Tree --- START
-                        notes_module_instance = self.core.module_registry.get("Notes")
+                        notes_module_instance = self.core.module_registry.get(
+                            "Notes")
                         if (
                             notes_module_instance
                             and hasattr(notes_module_instance, "build_sidebar_view")
@@ -227,20 +230,18 @@ class StudyOS:
                     with dpg.group(tag=self.MAIN_CONTENT_GROUP_TAG, width=-1):
                         # Top controls group (toggle button and command bar)
                         with dpg.group(
-                            horizontal=True, tag=self.TOP_CONTROLS_GROUP_TAG
+                            horizontal=True, tag=self.TOP_CONTROLS_GROUP_TAG, width=-1
                         ):
-                            # Sidebar toggle button
+                            # MOVE TOGGLE BUTTON BACK HERE
                             dpg.add_button(
                                 label="«",
                                 tag=self.SIDEBAR_TOGGLE_BTN_TAG,
                                 callback=self._toggle_sidebar,
-                                width=30,  # Reduced width
-                                height=30,  # Reduced height
+                                width=30,
+                                height=30
                             )
-
-                            # Tooltip for the sidebar toggle button
                             with dpg.tooltip(self.SIDEBAR_TOGGLE_BTN_TAG):
-                                dpg.add_text("Toggle Sidebar")
+                                dpg.add_text("Toggle Sidebar Visibility")
 
                             # Create Command Bar view
                             if self.command_bar:
@@ -306,7 +307,8 @@ class StudyOS:
             # Add a Main Menu Bar
             with dpg.menu_bar(parent=self.PRIMARY_WINDOW_TAG):
                 with dpg.menu(label="File"):
-                    dpg.add_menu_item(label="New Note", callback=self._menu_new_note)
+                    dpg.add_menu_item(label="New Note",
+                                      callback=self._menu_new_note)
                     dpg.add_menu_item(
                         label="Save All Notes", callback=self._menu_save_all_notes
                     )
@@ -321,7 +323,8 @@ class StudyOS:
                     )
 
                 with dpg.menu(label="Help"):
-                    dpg.add_menu_item(label="About StudyOS", callback=self._menu_about)
+                    dpg.add_menu_item(label="About StudyOS",
+                                      callback=self._menu_about)
 
             # Define the "About" window (modal, initially hidden)
             # Ensure this tag is unique and managed if multiple modals are added later
@@ -450,7 +453,8 @@ class StudyOS:
 
     def _on_tab_selected(self, sender, app_data, user_data):
         """Callback executed when a module tab is selected."""
-        print(f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
+        print(
+            f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
 
         # Use the mapping we created during initialization
         module_key = self.tab_id_to_module.get(app_data)
@@ -478,15 +482,18 @@ class StudyOS:
             thread = threading.Thread(target=run_async_switch, daemon=True)
             thread.start()
         else:
-            print(f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
-            print(f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
+            print(
+                f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
+            print(
+                f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
 
     async def _load_initial_module_view(self):
         print(
             "[StudyOS._load_initial_module_view] Loading initial module view..."
         )  # ADD LOG
         if self.registered_module_instances:
-            initial_module_key = list(self.registered_module_instances.keys())[0]
+            initial_module_key = list(
+                self.registered_module_instances.keys())[0]
             await self.switch_module(initial_module_key)  # Add await
         print(
             "[StudyOS._load_initial_module_view] Initial module view loaded."
@@ -502,14 +509,16 @@ class StudyOS:
 
         if isinstance(module_key_or_instance, str):
             current_key_to_set = module_key_or_instance
-            module_instance = self.core.module_registry.get(module_key_or_instance)
+            module_instance = self.core.module_registry.get(
+                module_key_or_instance)
             if not module_instance:
                 print(
                     f"[StudyOS.switch_module] Error: Module key '{module_key_or_instance}' not found in registered instances."
                 )
                 if dpg.does_item_exist(self.MODULE_VIEW_AREA_TAG):
                     # Clear previous content before adding error message
-                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG, children_only=True)
+                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG,
+                                    children_only=True)
                     with dpg.group(
                         parent=self.MODULE_VIEW_AREA_TAG
                     ):  # Ensure parent exists
@@ -633,14 +642,16 @@ class StudyOS:
                 )
 
         self.current_module_key = current_key_to_set  # Use the determined key
-        print(f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
+        print(
+            f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
 
     def _handle_dpg_resize(self, sender, app_data):
         """Responsive layout handler for DPG viewport."""
         width = dpg.get_viewport_width()
         height = dpg.get_viewport_height()
         if dpg.does_item_exist(self.PRIMARY_WINDOW_TAG):
-            dpg.configure_item(self.PRIMARY_WINDOW_TAG, width=width, height=height)
+            dpg.configure_item(self.PRIMARY_WINDOW_TAG,
+                               width=width, height=height)
 
         nav_width = 200
         if dpg.does_item_exist(self.NAV_RAIL_TAG):
@@ -727,7 +738,8 @@ class StudyOS:
             return
 
         current_index = (
-            module_keys.index(self.current_module_key) if self.current_module_key else 0
+            module_keys.index(
+                self.current_module_key) if self.current_module_key else 0
         )
         new_index = (current_index - 1) % len(module_keys)
         # Create new event loop for sync context
@@ -850,7 +862,8 @@ class StudyOS:
                     f"[StudyOS._menu_open_settings] Outer Exception for {module_key}: {ex_outer}"
                 )
 
-        thread = threading.Thread(target=run_async_switch_settings, daemon=True)
+        thread = threading.Thread(
+            target=run_async_switch_settings, daemon=True)
         thread.start()
         print(
             f"[StudyOS._menu_open_settings] Thread started for switching to {module_key}"
@@ -865,7 +878,8 @@ class StudyOS:
             and hasattr(notes_module, "_create_new_note")
             and callable(notes_module._create_new_note)
         ):
-            notes_module._create_new_note(sender, app_data)  # Pass through DPG args
+            notes_module._create_new_note(
+                sender, app_data)  # Pass through DPG args
             print("[StudyOS._menu_new_note] Called NotesModule._create_new_note().")
         else:
             print(
@@ -896,7 +910,8 @@ class StudyOS:
             print(f"[StudyOS._menu_about] Showing '{about_window_tag}'.")
             dpg.configure_item(about_window_tag, show=True)
         else:
-            print(f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
+            print(
+                f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
 
     # --- Utility Methods ---
     def get_module_by_key(self, module_key: str) -> Optional[BaseModule]:

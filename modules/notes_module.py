@@ -1,8 +1,7 @@
 import json
 from datetime import datetime  # For Note schema
 from pathlib import Path
-from typing import (TYPE_CHECKING, List, Optional,  # Added Union and Tuple
-                    Tuple, Union)
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union, Dict
 
 import dearpygui.dearpygui as dpg  # Changed from flet
 from pydantic import ValidationError  # Added for specific exception handling
@@ -12,6 +11,7 @@ from schemas import Note, NoteCreate  # Import the new schemas
 
 # from core import Core # Removed old import
 from .base_module import BaseModule
+from .notes_ui_utils import NotesDialogManager #, NotesContextMenuManager # Import the new manager
 
 if TYPE_CHECKING:  # Added TYPE_CHECKING block
     from core.app import Core  # Import Core from core.app for type hinting
@@ -25,7 +25,12 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
     def __init__(self, core: "Core"):  # Changed to string literal "Core"
         # print("[NotesModule.__init__] Method started.")
         super().__init__(core)
+        # self.logger = self.core.logger # REMOVE THIS LINE - logger comes from BaseModule
         # print("[NotesModule.__init__] super().__init__(core) called.")
+
+        # Instantiate UI Managers
+        self.dialog_manager = NotesDialogManager(self)
+        # self.context_menu_manager = NotesContextMenuManager(self) # For later
 
         # print("[NotesModule.__init__] Setting up data_path...")
         if (
@@ -41,8 +46,7 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
         else:
             # Fallback, ensure AppConfig default is used if core.config was missing
             # This case should ideally not happen if Core initializes AppConfig correctly
-            from core.config import \
-                AppConfig as DefaultAppConfig  # Temporary import
+            from core.config import AppConfig as DefaultAppConfig  # Temporary import
 
             self.data_path = DefaultAppConfig().notes_path
             # print(f"[NotesModule.__init__] WARNING: data_path set from DefaultAppConfig: {self.data_path}") # ADDED
@@ -140,63 +144,136 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
         self.rename_note_window_tag: Union[int, str] = dpg.generate_uuid()
         self.rename_note_input_tag: Union[int, str] = dpg.generate_uuid()
 
-        # Handler Registry for note items in sidebar
-        self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG = "note_sidebar_item_handler_registry_actual_tag"
+        # --- Delete Note Confirmation Dialog Items ---
+        self._setup_delete_confirmation_dialog_tags()
 
-        if not dpg.does_item_exist(self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG):
-            self.logger.info(f"[NotesModule.__init__] Creating new handler registry with tag: {self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}")
-            dpg.add_handler_registry(tag=self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG) # Create the registry
+        # --- New Folder Dialog Items --- (MOVED TO NotesDialogManager)
+        # self.new_folder_dialog_tag: Union[int, str] = dpg.generate_uuid()
+        # self.new_folder_name_input_tag: Union[int, str] = dpg.generate_uuid()
+        # self.new_folder_icon_input_tag: Union[int, str] = dpg.generate_uuid() # For the new icon input
 
-            # Add an item_clicked_handler to this registry.
-            # When this registry is bound to an item, this handler will fire for that item.
-            dpg.add_item_clicked_handler(
-                button=dpg.mvMouseButton_Right, # Specifically for right-clicks
-                callback=self._handle_note_sidebar_click,
-                parent=self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG,
-                # user_data can be set here if needed globally for this handler instance
-            )
-            self.logger.info(f"[NotesModule.__init__] Item click handler (right-click) added to registry '{self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}'.")
-        else:
-            self.logger.info(f"[NotesModule.__init__] Using existing handler registry with tag: {self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}")
-            # Assuming if registry exists, the handler was added during first creation.
-            # For more robustness, one might check and add if missing, but this can get complex.
+        self.pending_new_folder_parent_id: Optional[str] = None # State remains in NotesModule for now
+        self.pending_new_note_parent_id: Optional[str] = None # State remains in NotesModule for now
 
-        # Define the actual context menu window (initially empty and hidden)
-        if not dpg.does_item_exist(self.note_context_menu_tag):
+        # --- Constants for Icons and Special Values ---
+        self.ICON_FOLDER_DEFAULT = "📁"
+        self.ICON_NOTE_DEFAULT = "📄"
+        self.ICON_ROOT = "🌳"  # Icon for root in dropdowns
+        self.ROOT_SENTINEL_VALUE = "__MOVE_TO_ROOT__"  # Sentinel for moving to root
+
+        # Definition of New Folder Dialog MOVED to NotesDialogManager
+        # if not dpg.does_item_exist(self.new_folder_dialog_tag):
+        #     with dpg.window(
+        #         label="Create New Folder",
+        #         modal=True,
+        #         show=False,
+        #         tag=self.new_folder_dialog_tag,
+        #         width=350, # Slightly wider for icon
+        #         height=150, # Slightly taller for icon
+        #         no_resize=True,
+        #     ):
+        #         dpg.add_input_text(
+        #             tag=self.new_folder_name_input_tag, label="Folder Name", width=-1
+        #         )
+        #         dpg.add_input_text(
+        #             tag=self.new_folder_icon_input_tag, label="Icon (emoji)", width=-1, hint="e.g., 📁 or ✨"
+        #         ) # New input for icon
+        #         with dpg.group(horizontal=True):
+        #             dpg.add_button(
+        #                 label="Create Folder",
+        #                 callback=self._execute_create_folder,
+        #                 width=-1,
+        #             )
+        #             dpg.add_button(
+        #                 label="Cancel",
+        #                 callback=lambda: dpg.configure_item(self.new_folder_dialog_tag, show=False),
+        #                 width=-1,
+        #             )
+
+        # --- New Note Dialog Items --- (MOVED TO NotesDialogManager)
+        # self.new_note_dialog_tag: Union[int, str] = dpg.generate_uuid()
+        # self.new_note_title_input_tag: Union[int, str] = dpg.generate_uuid()
+        # self.new_note_icon_input_tag: Union[int, str] = dpg.generate_uuid()
+        # self.new_note_parent_folder_dropdown_tag: Union[int, str] = dpg.generate_uuid()
+
+        # To store (label, id) for dropdown: List[Tuple[str, Optional[str]]]
+        # This state is still managed by NotesModule as it's dynamically populated based on self.notes
+        self.available_folders_for_new_note_dropdown: List[Tuple[str, Optional[str]]] = []
+
+        # Definition of New Note Dialog MOVED to NotesDialogManager
+        # if not dpg.does_item_exist(self.new_note_dialog_tag):
+        #     with dpg.window(
+        #         label="Create New Note",
+        #         modal=True,
+        #         show=False,
+        #         tag=self.new_note_dialog_tag,
+        #         width=400,
+        #         height=200,
+        #         no_resize=True,
+        #     ):
+        #         dpg.add_input_text(
+        #             tag=self.new_note_title_input_tag, label="Note Title", width=-1, hint="Enter title for your new note..."
+        #         )
+        #         dpg.add_input_text(
+        #             tag=self.new_note_icon_input_tag, label="Icon (emoji)", width=-1, hint="e.g., ✨ or 📝"
+        #         )
+        #         dpg.add_text("Parent Folder:")
+        #         dpg.add_combo(
+        #             tag=self.new_note_parent_folder_dropdown_tag,
+        #             items=[], # Will be populated dynamically
+        #             width=-1,
+        #             default_value="None (Root)" # Default selection label
+        #         )
+        #         dpg.add_spacer(height=5)
+        #         with dpg.group(horizontal=True):
+        #             dpg.add_button(
+        #                 label="Create Note & Edit",
+        #                 callback=self._execute_create_new_note, # New callback to be created
+        #                 width=-1,
+        #             )
+        #             dpg.add_button(
+        #                 label="Cancel",
+        #                 callback=lambda: dpg.configure_item(self.new_note_dialog_tag, show=False),
+        #                 width=-1,
+        #             )
+
+        # --- Move Item Dialog Items ---
+        self.move_item_dialog_tag: Union[int, str] = dpg.generate_uuid()
+        self.move_item_label_tag: Union[int, str] = dpg.generate_uuid() # To display which item is being moved
+        self.move_item_destination_folder_dropdown_tag: Union[int, str] = dpg.generate_uuid()
+        self.item_to_move_id: Optional[str] = None # Store the ID of the item being moved
+        # To store (label, id) for dropdown: List[Tuple[str, Optional[str]]]
+        self.available_folders_for_move_dropdown: List[Tuple[str, Optional[str]]] = []
+
+        if not dpg.does_item_exist(self.move_item_dialog_tag):
             with dpg.window(
-                tag=self.note_context_menu_tag,
-                popup=True,
-                autosize=True,
-                no_title_bar=True,
-                show=False,
-            ):
-                pass  # Items will be added dynamically
-
-        # Define Rename Note dialog (modal, initially hidden)
-        if not dpg.does_item_exist(self.rename_note_window_tag):
-            with dpg.window(
-                label="Rename Note",
+                label="Move Item To...",
                 modal=True,
                 show=False,
-                tag=self.rename_note_window_tag,
-                width=300,
-                height=120,
+                tag=self.move_item_dialog_tag,
+                width=400,
+                height=180, # Adjusted height
                 no_resize=True,
             ):
-                dpg.add_input_text(
-                    tag=self.rename_note_input_tag, label="New Title", width=-1
+                dpg.add_text("Moving item: ", tag=self.move_item_label_tag) # Will be updated with item name
+                dpg.add_spacer(height=5)
+                dpg.add_text("Select Destination Folder:")
+                dpg.add_combo(
+                    tag=self.move_item_destination_folder_dropdown_tag,
+                    items=[], # Will be populated dynamically
+                    width=-1,
+                    default_value="None (Root)"
                 )
+                dpg.add_spacer(height=10)
                 with dpg.group(horizontal=True):
                     dpg.add_button(
-                        label="Rename",
-                        callback=self._context_rename_note_execute,
+                        label="Move Item",
+                        callback=self._execute_move_item, # New callback
                         width=-1,
                     )
                     dpg.add_button(
                         label="Cancel",
-                        callback=lambda: dpg.configure_item(
-                            self.rename_note_window_tag, show=False
-                        ),
+                        callback=lambda: dpg.configure_item(self.move_item_dialog_tag, show=False),
                         width=-1,
                     )
 
@@ -350,14 +427,50 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
             self._OBSOLETE_dpg_save_note_callback(None, None, None)
 
     def get_focusable_items(self):
-        return [self.dpg_title_field_tag, self.dpg_content_field_tag]
+        if dpg.does_item_exist("editor_window") and dpg.is_item_shown("editor_window"):
+            return [self.editor_title, self.editor_content]
+        elif dpg.does_item_exist(self.dialog_manager.new_note_dialog_tag) and dpg.is_item_shown(self.dialog_manager.new_note_dialog_tag):
+            # This part will also need to use self.dialog_manager once New Note Dialog is moved
+            return [self.new_note_title_input_tag, self.new_note_icon_input_tag, self.new_note_parent_folder_dropdown_tag]
+        elif dpg.does_item_exist(self.dialog_manager.new_folder_dialog_tag) and dpg.is_item_shown(self.dialog_manager.new_folder_dialog_tag):
+            return [self.dialog_manager.new_folder_name_input_tag, self.dialog_manager.new_folder_icon_input_tag]
+        elif dpg.does_item_exist(self.dialog_manager.delete_confirm_dialog_tag) and dpg.is_item_shown(self.dialog_manager.delete_confirm_dialog_tag):
+            # This part will use self.dialog_manager once Delete Confirm Dialog is moved
+            pass
+        elif dpg.does_item_exist(self.dialog_manager.rename_note_window_tag) and dpg.is_item_shown(self.dialog_manager.rename_note_window_tag):
+            # This part will use self.dialog_manager once Rename Dialog is moved
+            return [self.rename_note_input_tag]
+        return []
 
     def _create_new_note(self, sender, app_data):
-        dpg.show_item("editor_window")
-        if self.editor_title is not None:
-            dpg.set_value(self.editor_title, "")
-        if self.editor_content is not None:
-            dpg.set_value(self.editor_content, "")
+        # self.logger.info("[_create_new_note] Opening 'New Note Dialog'.")
+
+        self.available_folders_for_new_note_dropdown = [("None (Root)", None)]
+        sorted_folders = sorted([note for note in self.notes if note.is_folder], key=lambda f: f.title.lower())
+        for folder in sorted_folders:
+            self.available_folders_for_new_note_dropdown.append((folder.title, folder.id))
+
+        dropdown_labels = [item[0] for item in self.available_folders_for_new_note_dropdown]
+
+        if dpg.does_item_exist(self.new_note_parent_folder_dropdown_tag):
+            dpg.configure_item(self.new_note_parent_folder_dropdown_tag, items=dropdown_labels)
+            if "None (Root)" in dropdown_labels:
+                dpg.set_value(self.new_note_parent_folder_dropdown_tag, "None (Root)")
+            elif dropdown_labels:
+                dpg.set_value(self.new_note_parent_folder_dropdown_tag, dropdown_labels[0])
+
+        if dpg.does_item_exist(self.new_note_title_input_tag):
+            dpg.set_value(self.new_note_title_input_tag, "")
+        if dpg.does_item_exist(self.new_note_icon_input_tag):
+            dpg.set_value(self.new_note_icon_input_tag, "")
+
+        if dpg.does_item_exist(self.new_note_dialog_tag):
+            dpg.configure_item(self.new_note_dialog_tag, show=True)
+            if dpg.does_item_exist(self.new_note_title_input_tag):
+                dpg.focus_item(self.new_note_title_input_tag)
+        else:
+            self.logger.error("[_create_new_note] 'New Note Dialog' DPG item does not exist!")
+            self._show_error("Cannot open New Note dialog.")
 
     def _toggle_view_mode(self, sender):
         self.card_view = not self.card_view
@@ -439,12 +552,19 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
         if self.current_editing_note_id:
             # Find and update existing note
             existing_note = next(
-                (n for n in self.notes if n.id == self.current_editing_note_id), None
+                (n for n in self.notes if n.id ==
+                 self.current_editing_note_id), None
             )
             if existing_note:
-                if not note_title.strip(): # Check if title becomes empty for an existing note
-                    self.logger.warning(f"[_save_note] Title for existing note ID {existing_note.id} cannot be empty. Save aborted.")
-                    self._show_error("Note title cannot be empty.") # Use existing error display
+                if (
+                    not note_title.strip()
+                ):  # Check if title becomes empty for an existing note
+                    self.logger.warning(
+                        f"[_save_note] Title for existing note ID {existing_note.id} cannot be empty. Save aborted."
+                    )
+                    self._show_error(
+                        "Note title cannot be empty."
+                    )  # Use existing error display
                     # Optionally, could revert the dpg.get_value(self.editor_title) to existing_note.title
                     # or simply not proceed with the update of the title field if it's crucial it never gets blanked.
                     # For now, just preventing the save of the blank title.
@@ -452,27 +572,46 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
                 existing_note.title = note_title
                 existing_note.content = note_content
                 existing_note.updated_at = datetime.utcnow()
-                self.logger.info(f"[_save_note] Updated existing note: {existing_note.id}")
+                self.logger.info(
+                    f"[_save_note] Updated existing note: {existing_note.id}"
+                )
             else:
                 self.logger.error(
                     f"[_save_note] Error: Could not find note with ID {self.current_editing_note_id} to update."
                 )
-                self._show_error(f"Error: Note {self.current_editing_note_id} not found for update.")
-                return # Don't proceed if note to update isn't found
+                self._show_error(
+                    f"Error: Note {self.current_editing_note_id} not found for update."
+                )
+                return  # Don't proceed if note to update isn't found
         else:
             # Create new note object
             if not note_title.strip():
-                self.logger.warning("[_save_note] Title for new note cannot be empty. Save aborted.")
+                self.logger.warning(
+                    "[_save_note] Title for new note cannot be empty. Save aborted."
+                )
                 self._show_error("Note title cannot be empty.")
-                return # Abort saving if title is empty for a new note
+                self.pending_new_note_parent_id = None # Reset on abort
+                return
             try:
-                new_note_schema = NoteCreate(title=note_title, content=note_content)
+                parent_for_new_note = self.pending_new_note_parent_id
+                new_note_schema = NoteCreate(
+                    title=note_title,
+                    content=note_content,
+                    parent_id=parent_for_new_note
+                )
                 new_note = Note(**new_note_schema.model_dump())
                 self.notes.append(new_note)
-                self.logger.info(f"[_save_note] Created new note: {new_note.id}")
+                self.logger.info(
+                    f"[_save_note] Created new note: {new_note.id} with parent_id: {parent_for_new_note}"
+                )
             except ValidationError as e:
-                self.logger.error(f"[_save_note] Pydantic validation error for new note: {e}")
-                self._show_error(f"Validation Error: {e.errors()[0]['msg'] if e.errors() else 'Invalid data'}")
+                self.logger.error(
+                    f"[_save_note] Pydantic validation error for new note: {e}"
+                )
+                self._show_error(
+                    f"Validation Error: {e.errors()[0]['msg'] if e.errors() else 'Invalid data'}"
+                )
+                self.pending_new_note_parent_id = None # Reset on error
                 return
 
         self._save_notes()  # Save all notes to file
@@ -480,7 +619,8 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
 
         if dpg.does_item_exist("editor_window"):
             dpg.hide_item("editor_window")
-        self.current_editing_note_id = None  # Reset
+        self.pending_new_note_parent_id = None # Reset after successful save or if editor closed
+        self.current_editing_note_id = None
 
     @handle_errors
     def _delete_note(self, note_id: str):
@@ -608,63 +748,150 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
         self._refresh_sidebar_note_list()
         self._refresh_tag_filter_list()  # Re-render to update selection states
 
+    def _build_sidebar_tree_recursive(self, parent_dpg_tag: Union[int, str], current_parent_id: Optional[str], notes_by_parent: Dict[Optional[str], List[Note]]):
+        # self.logger.debug(f"[_build_sidebar_tree_recursive] Building for parent_id: {current_parent_id} under DPG parent: {parent_dpg_tag}")
+        children = notes_by_parent.get(current_parent_id, [])
+
+        # Sort children: folders first, then by order, then by title
+        sorted_children = sorted(
+            children,
+            key=lambda x: (not x.is_folder, x.order, x.title.lower())
+        )
+
+        if not sorted_children and current_parent_id is not None: # Only add "empty" text if it's a folder that's expanded
+            # This check might be tricky if tree nodes are auto-opened or state isn't managed.
+            # For now, we just don't add anything if a folder is empty.
+            # Or, one could add a disabled dpg.add_text("(empty)", parent=parent_dpg_tag, color=(150,150,150))
+            pass
+
+        for item in sorted_children:
+            default_folder_icon = "📁"
+            default_note_icon = "📄"
+
+            icon_to_use = item.icon if item.icon and item.icon.strip() else (default_folder_icon if item.is_folder else default_note_icon)
+            item_label = f"{icon_to_use} {item.title}"
+            # Ensure unique tag for DPG item
+            dpg_item_tag = f"sidebar_item_{item.id}"
+
+            if item.is_folder:
+                # Create a tree node for the folder
+                with dpg.tree_node(label=item_label, tag=dpg_item_tag, parent=parent_dpg_tag, user_data=item.id, default_open=False, selectable=True) as folder_node_tag:
+                    # REMOVE: dpg.configure_item(folder_node_tag, callback=self._on_note_selected_from_tree)
+
+                    with dpg.item_handler_registry(tag=f"handler_for_folder_{item.id}") as handler_reg_tag:
+                        dpg.add_item_clicked_handler(
+                            button=dpg.mvMouseButton_Left, # For selection
+                    callback=self._on_note_selected_from_tree,
+                            user_data=item.id
+                        )
+                        dpg.add_item_clicked_handler(
+                            button=dpg.mvMouseButton_Right, # For context menu
+                            callback=self._handle_note_sidebar_click,
+                            user_data=item.id
+                        )
+                    dpg.bind_item_handler_registry(folder_node_tag, handler_reg_tag)
+
+                    self._build_sidebar_tree_recursive(folder_node_tag, item.id, notes_by_parent)
+            else: # It's a note
+                note_node_tag = dpg.add_tree_node(label=item_label, tag=dpg_item_tag, parent=parent_dpg_tag, user_data=item.id, leaf=True, selectable=True)
+                # REMOVE direct callback: callback=self._on_note_selected_from_tree
+
+                with dpg.item_handler_registry(tag=f"handler_for_note_{item.id}") as handler_reg_tag:
+                    dpg.add_item_clicked_handler(
+                        button=dpg.mvMouseButton_Left, # For selection
+                        callback=self._on_note_selected_from_tree,
+                        user_data=item.id
+                    )
+                    dpg.add_item_clicked_handler(
+                        button=dpg.mvMouseButton_Right, # For context menu
+                        callback=self._handle_note_sidebar_click,
+                        user_data=item.id
+                    )
+                dpg.bind_item_handler_registry(note_node_tag, handler_reg_tag)
+
     def _refresh_sidebar_note_list(self):
-        if not dpg.does_item_exist(self.sidebar_notes_list_actual_tag):
-            print(
-                f"[NotesModule._refresh_sidebar_note_list] Sidebar notes list container {self.sidebar_notes_list_actual_tag} does not exist."
+        # self.logger.debug("[_refresh_sidebar_note_list] Refreshing sidebar note list (hierarchical).")
+        if not hasattr(self, "sidebar_notes_list_actual_tag") or not dpg.does_item_exist(
+            self.sidebar_notes_list_actual_tag
+        ):
+                    self.logger.error(
+                "[_refresh_sidebar_note_list] Sidebar notes list container does not exist."
             )
-            return
+        return
 
         dpg.delete_item(self.sidebar_notes_list_actual_tag, children_only=True)
 
-        notes_to_display = []
+        # Apply tag filtering first
+        current_notes_to_display = self.notes
         if self.active_tag_filter:
-            for note in self.notes:
-                if note.tags and self.active_tag_filter in note.tags:
-                    notes_to_display.append(note)
-        else:
-            notes_to_display = self.notes  # Show all notes if no filter
+            # For hierarchical view, tag filtering needs careful consideration.
+            # Option 1: Show only notes with the tag, and their parent folders (even if parents don't have the tag).
+            # Option 2: Show only notes AND folders that have the tag.
+            # For simplicity, let's try Option 1: Show tagged notes and their ancestors.
+            # This is complex. A simpler initial filter: show all notes if a tag is active,
+            # and highlight or visually indicate those with the tag.
+            # Or, more simply for now: only filter leaf notes.
 
-        if not notes_to_display:
-            dpg.add_text(
-                "No notes match filter or no notes exist.",
-                parent=self.sidebar_notes_list_actual_tag,
-            )
-        else:
-            for note in notes_to_display:
-                note_label = note.title if note.title else "Untitled Note"
-                current_selectable_tag = f"note_selectable_{note.id}"
+            # Simplistic filter for now: only notes (not folders) are directly filtered by tag.
+            # Folders will appear if they contain (eventually) a matched note.
+            # This requires adjusting the recursive build to check if any descendant has the tag.
 
-                dpg.add_selectable(
-                    label=note_label,
-                    parent=self.sidebar_notes_list_actual_tag,
-                    user_data=note.id,  # This is for left-click (selection)
-                    callback=self._on_note_selected_from_tree,
-                    tag=current_selectable_tag,
-                )
+            # Current simple approach: filter the flat list of notes first, then build hierarchy of those.
+            # This means empty folders (after filtering) won't show.
+            notes_with_tag = {
+                note.id for note in self.notes if note.tags and self.active_tag_filter in note.tags and not note.is_folder
+            }
 
-                if not dpg.does_item_exist(current_selectable_tag):
-                    self.logger.error(
-                        f"[NotesModule._refresh_sidebar_note_list] CRITICAL FAILURE: Selectable item '{current_selectable_tag}' does NOT exist immediately after creation and before binding!"
-                    )
-                    continue
+            # Include all folders, and notes that match the tag.
+            # To show parent folders of tagged notes:
+            # 1. Get all notes that match the tag.
+            # 2. For each matched note, find all its ancestors and add them to a set of items to display.
+            # 3. Add all folders to this set as well, so they can be containers.
 
-                # Bind the handler registry to this specific selectable item
-                # Use the string tag for the handler registry for binding.
-                if dpg.does_item_exist(self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG):
-                    try:
-                        dpg.bind_item_handler_registry(
-                            current_selectable_tag, self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG
-                        )
-                        # self.logger.debug(f"Successfully bound '{current_selectable_tag}' to handler registry '{self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}'.")
-                    except Exception as e:
-                        self.logger.error(
-                            f"[NotesModule._refresh_sidebar_note_list] ERROR binding '{current_selectable_tag}' to STRING TAG registry '{self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}': {e}"
-                        )
-                else:
-                    self.logger.error(
-                        f"[NotesModule._refresh_sidebar_note_list] Handler registry '{self.NOTE_SIDEBAR_HANDLER_REGISTRY_TAG}' not available for binding."
-                    )
+            items_to_render_ids = set()
+            if self.active_tag_filter:
+                notes_map = {note.id: note for note in self.notes}
+                for note in self.notes:
+                    if not note.is_folder and note.tags and self.active_tag_filter in note.tags:
+                        items_to_render_ids.add(note.id)
+                        # Add all ancestors
+                        curr_parent_id = note.parent_id
+                        while curr_parent_id and curr_parent_id in notes_map:
+                            items_to_render_ids.add(curr_parent_id)
+                            curr_parent_id = notes_map[curr_parent_id].parent_id
+                # Also include all folders so they can be rendered if they contain a tagged note
+                for note in self.notes:
+                    if note.is_folder:
+                        items_to_render_ids.add(note.id) # We'll let the recursive build hide empty ones
+                current_notes_to_display = [note for note in self.notes if note.id in items_to_render_ids]
+            else:
+                current_notes_to_display = self.notes
+
+
+        if not current_notes_to_display:
+            dpg.add_text("No notes or folders found.", parent=self.sidebar_notes_list_actual_tag)
+            # self.logger.debug("[_refresh_sidebar_note_list] No items to display after potential filtering.")
+            return
+
+        # Build a dictionary of notes/folders by their parent_id
+        notes_by_parent: Dict[Optional[str], List[Note]] = {}
+        for note_item in current_notes_to_display:
+            parent_id = note_item.parent_id
+            if parent_id not in notes_by_parent:
+                notes_by_parent[parent_id] = []
+            notes_by_parent[parent_id].append(note_item)
+
+        # self.logger.debug(f"[_refresh_sidebar_note_list] Notes by parent structure: { {k: [n.title for n in v] for k,v in notes_by_parent.items()} }")
+
+        # Start building the tree from top-level items (parent_id is None)
+        self._build_sidebar_tree_recursive(self.sidebar_notes_list_actual_tag, None, notes_by_parent)
+
+        if not dpg.get_item_children(self.sidebar_notes_list_actual_tag, 1) and not current_notes_to_display: # Check if anything was added
+             dpg.add_text("No notes or folders to display.", parent=self.sidebar_notes_list_actual_tag)
+        elif not dpg.get_item_children(self.sidebar_notes_list_actual_tag, 1) and current_notes_to_display:
+             # This case means filtering resulted in no top-level items, or all top-level items are empty folders.
+             dpg.add_text("No notes match current filter.", parent=self.sidebar_notes_list_actual_tag)
+
 
     def _on_note_selected_from_tree(self, sender, app_data, user_data):
         """Callback when a note is selected in the sidebar list."""
@@ -1078,218 +1305,504 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
             )
 
     def _handle_note_sidebar_click(self, sender, app_data, user_data):
-        # sender: ID of the item to which the handler_registry is bound, and which was clicked.
+        # sender: ID of the item_handler_registry that caught the click.
         # app_data: Mouse button that was clicked (e.g., dpg.mvMouseButton_Right which is 1).
-        # user_data: The user_data passed to add_item_clicked_handler (None in our current setup).
-        self.logger.debug(f"[_handle_note_sidebar_click] triggered. Sender (clicked_item_tag): {sender}, app_data (mouse_button): {app_data}, user_data: {user_data}")
+        # user_data: The note.id passed when creating the item_clicked_handler.
 
-        # We expect app_data to be the mouse button enum/int.
-        # The important part is 'sender', which should be the tag of the clicked selectable.
-        if app_data != dpg.mvMouseButton_Right:
-            self.logger.warning(f"[_handle_note_sidebar_click] Click was not a right-click. app_data (mouse_button): {app_data}. Aborting.")
+        clicked_note_id = user_data  # This is the note.id
+        self.context_menu_active_note_id = clicked_note_id
+        # self.logger.debug(f"[_handle_note_sidebar_click] Right-click detected on note ID: {clicked_note_id}. Sender: {sender}, App Data: {app_data}")
+
+        if not clicked_note_id:
+            # self.logger.warning("[_handle_note_sidebar_click] No note ID received in user_data.")
             return
 
-        clicked_item_tag = sender # This is the key change!
-
-        self.logger.info(f"[_handle_note_sidebar_click] Clicked item tag (from sender): {clicked_item_tag}. Mouse button (from app_data): {app_data}")
-
-        if not dpg.does_item_exist(clicked_item_tag):
-            self.logger.error(f"[_handle_note_sidebar_click] The clicked_item_tag {clicked_item_tag} (from sender) does not exist in DPG. Aborting context menu.")
-            return
-
-        # The user_data of the selectable item in the sidebar IS the note_id.
-        note_id_from_item = dpg.get_item_user_data(clicked_item_tag)
-
-        if not isinstance(note_id_from_item, str):
-            self.logger.warning(
-                f"[_handle_note_sidebar_click] Clicked item {clicked_item_tag} is not a note or has no valid note_id. User data: {note_id_from_item}"
-            )
-            return
-
-        self.context_menu_active_note_id = note_id_from_item
-        self.logger.info(
-            f"[_handle_note_sidebar_click] Context menu triggered for note ID: {self.context_menu_active_note_id}, item tag: {clicked_item_tag}"
-        )
-
-        # Clear previous items from the context menu
-        if dpg.does_item_exist(self.note_context_menu_tag):
-            dpg.delete_item(self.note_context_menu_tag, children_only=True)
-        else:
-            # This case should not happen if __init__ correctly creates it.
+        # Ensure context menu tag exists
+        if not self.note_context_menu_tag or not dpg.does_item_exist(
+            self.note_context_menu_tag
+        ):
             self.logger.error(
-                f"[_handle_note_sidebar_click] Context menu tag {self.note_context_menu_tag} does not exist!"
+                "[_handle_note_sidebar_click] Context menu tag does not exist!"
             )
-            # Attempt to recreate it, though this indicates a deeper issue
+            # Attempt to recreate it if it's missing, though this indicates a deeper issue.
+            self.note_context_menu_tag = dpg.generate_uuid()
             with dpg.window(
                 tag=self.note_context_menu_tag,
                 popup=True,
                 autosize=True,
                 no_title_bar=True,
                 show=False,
-            ):
-                pass  # Items will be added dynamically
-            if not dpg.does_item_exist(self.note_context_menu_tag):
-                self.logger.error(
-                    f"[_handle_note_sidebar_click] FAILED to recreate context menu tag {self.note_context_menu_tag}. Context menu will not work."
-                )
-                return
+            ) as menu_tag:
+                self.logger.info(
+                    f"Recreated context menu with tag: {menu_tag}")
+                # It will be empty initially, items added below.
 
-        # Add new items to the context menu
-        # user_data for menu items will be the self.context_menu_active_note_id
+        # Clear any existing items in the context menu first
+        dpg.delete_item(self.note_context_menu_tag, children_only=True)
+
+        # Populate the context menu dynamically
+        # The user_data for these menu items will be the clicked_note_id
+        # so the callbacks know which note to act upon.
         dpg.add_menu_item(
             label="Open",
             callback=self._context_open_note,
+            user_data=clicked_note_id,
             parent=self.note_context_menu_tag,
-            user_data=self.context_menu_active_note_id,
         )
         dpg.add_menu_item(
             label="Edit",
-            callback=self._context_edit_note,
+            callback=self._context_edit_note,  # Assuming _context_edit_note is defined
+            user_data=clicked_note_id,
             parent=self.note_context_menu_tag,
-            user_data=self.context_menu_active_note_id,
         )
         dpg.add_menu_item(
             label="Rename",
-            callback=self._context_rename_note_setup,
+            callback=self._context_rename_note_setup,  # Opens the rename dialog
+            user_data=clicked_note_id,
             parent=self.note_context_menu_tag,
-            user_data=self.context_menu_active_note_id,
         )
         dpg.add_menu_item(
             label="Delete",
-            callback=self._context_delete_note_from_context,
+            callback=self._context_delete_note_from_context,  # Prompts for deletion
+            user_data=clicked_note_id,
             parent=self.note_context_menu_tag,
-            user_data=self.context_menu_active_note_id,
         )
         dpg.add_menu_item(
-            label="Move",
-            callback=self._context_move_note,
+            label="Move...",  # Placeholder for now
+            callback=self._context_move_note,  # Assuming _context_move_note is defined
+            user_data=clicked_note_id,
             parent=self.note_context_menu_tag,
-            user_data=self.context_menu_active_note_id,
+            enabled=False,  # Disable 'Move' for now as it's not implemented
+        )
+        dpg.add_separator(parent=self.note_context_menu_tag) # Separator before New Folder
+        dpg.add_menu_item(
+            label="New Folder",
+            callback=self._context_create_folder_setup,
+            user_data=clicked_note_id,
+            parent=self.note_context_menu_tag
         )
 
-        # Configure and show the popup. DPG handles positioning.
-        # Ensure the context menu is a child of the primary window or a relevant container if issues arise.
-        # For a simple popup, dpg usually handles this well.
-        dpg.configure_item(self.note_context_menu_tag, show=True)
-        self.logger.debug(
-            f"[_handle_note_sidebar_click] Configured context menu {self.note_context_menu_tag} to show."
+        clicked_item_object = next((n for n in self.notes if n.id == clicked_note_id), None)
+        if clicked_item_object and clicked_item_object.is_folder:
+            dpg.add_menu_item(
+                label="New Note Here",
+                callback=self._context_create_note_in_folder_setup,
+                user_data=clicked_note_id,
+                parent=self.note_context_menu_tag
+            )
+
+        dpg.add_separator(parent=self.note_context_menu_tag)
+        dpg.add_menu_item(
+            label="New Folder",
+            callback=self._context_create_folder_setup,
+            user_data=clicked_note_id,
+            parent=self.note_context_menu_tag
         )
+
+        # Show the context menu at the mouse position
+        # dpg.set_item_pos(self.note_context_menu_tag, dpg.get_mouse_pos(local=False))
+        dpg.configure_item(self.note_context_menu_tag, show=True)
+        # self.logger.debug(f"Showing context menu '{self.note_context_menu_tag}' for note ID '{clicked_note_id}'.")
 
     def _context_open_note(self, sender, app_data, user_data):
         note_id = user_data
-        self.logger.info(
-            f"[_context_open_note] Triggered for note ID: {note_id}")
         if note_id:
-            # Simulate selecting the note from the tree, which should load it
+            # self.logger.debug(f"[_context_open_note] Opening note with ID: {note_id}")
+            # Simulate a left-click selection to reuse existing display logic
             self._on_note_selected_from_tree(
-                sender=None, app_data=None, user_data=note_id
-            )  # Pass note_id as user_data
-        else:
-            self.logger.warning(
-                "[_context_open_note] No note ID provided in user_data."
+                sender=f"note_selectable_{note_id}", app_data=None, user_data=note_id
             )
+        else:
+            # self.logger.warning("[_context_open_note] No note ID provided.")
+            pass
 
     def _context_edit_note(self, sender, app_data, user_data):
         note_id = user_data
-        self.logger.info(
-            f"[_context_edit_note] Triggered for note ID: {note_id}")
         if note_id:
+            # self.logger.debug(f"[_context_edit_note] Attempting to edit note with ID: {note_id}")
             note_to_edit = next(
-                (note for note in self.notes if note.id == note_id), None
-            )
+                (n for n in self.notes if n.id == note_id), None)
             if note_to_edit:
-                self.current_editing_note_id = note_id  # Set for the editor save logic
-                self._open_editor(note_to_edit)
+                # self.logger.debug(f"[_context_edit_note] Note found: {note_to_edit.title}. Opening editor.")
+                self._open_editor(
+                    note_to_edit
+                )  # _open_editor should handle populating and showing the editor
             else:
-                self.logger.warning(
-                    f"[_context_edit_note] Note with ID {note_id} not found."
-                )
+                # self.logger.warning(f"[_context_edit_note] Note with ID {note_id} not found.")
+                self._show_error(
+                    f"Could not find note with ID {note_id} to edit.")
         else:
-            self.logger.warning(
-                "[_context_edit_note] No note ID provided in user_data."
-            )
+            # self.logger.warning("[_context_edit_note] No note ID provided for editing.")
+            pass
+
+    def _context_create_folder_setup(self, sender, app_data, user_data):
+        clicked_item_id = user_data # ID of the item that was right-clicked
+        actual_parent_id: Optional[str] = None
+
+        if clicked_item_id:
+            # If a folder was clicked, the new folder goes inside it.
+            # If a note was clicked, the new folder goes in the same parent as that note.
+            clicked_item = self._find_note_by_id(clicked_item_id)
+            if clicked_item:
+                if clicked_item.is_folder:
+                    actual_parent_id = clicked_item_id
+                else:
+                    actual_parent_id = clicked_item.parent_id # Can be None (root)
+            # If clicked_item_id was None or item not found, actual_parent_id remains None (root)
+
+        # self.logger.info(f"[_context_create_folder_setup] Calling dialog_manager.show_new_folder_dialog with parent_id: {actual_parent_id}")
+        self.dialog_manager.show_new_folder_dialog(actual_parent_id)
+
+    def _context_create_note_in_folder_setup(self, sender, app_data, user_data):
+        parent_folder_id = user_data # This is the ID of the folder where the note should be created
+        # self.logger.info(f"[_context_create_note_in_folder_setup] Request to create new note in folder ID: {parent_folder_id}")
+
+        self.pending_new_note_parent_id = parent_folder_id
+        self.current_editing_note_id = None # Explicitly ensure we are in new note mode
+
+        if self.editor_title is not None:
+            dpg.set_value(self.editor_title, "New Note") # Default title
+        if self.editor_content is not None:
+            dpg.set_value(self.editor_content, "")
+        dpg.show_item("editor_window")
+        if self.editor_title is not None: # Attempt to focus after showing
+            dpg.focus_item(self.editor_title)
 
     def _context_rename_note_setup(self, sender, app_data, user_data):
-        if self.context_menu_active_note_id:
-            note = next(
-                (n for n in self.notes if n.id ==
-                 self.context_menu_active_note_id),
-                None,
-            )
-            if note:
-                dpg.set_value(
-                    self.rename_note_input_tag, note.title if note.title else ""
-                )
-                dpg.configure_item(self.rename_note_window_tag, show=True)
-        dpg.configure_item(self.note_context_menu_tag, show=False)
-        # self.context_menu_active_note_id remains set until rename is confirmed or cancelled
+        note_id_to_rename = user_data # This is the note_id from the context menu item
+        # self.logger.debug(f"[_context_rename_note_setup] Setting up rename for note ID: {note_id_to_rename}")
 
-    def _context_rename_note_execute(self, sender, app_data, user_data):
-        if self.context_menu_active_note_id:
-            new_title = dpg.get_value(self.rename_note_input_tag)
-            note_to_rename = next(
-                (n for n in self.notes if n.id ==
-                 self.context_menu_active_note_id),
-                None,
-            )
-            if note_to_rename:
-                note_to_rename.title = new_title
-                note_to_rename.updated_at = datetime.utcnow()
-                self._save_notes()
-                self._refresh_sidebar_note_list()
-                # If this note is currently displayed in the main area, refresh that too
-                if self.currently_selected_note_id == self.context_menu_active_note_id:
-                    self._on_note_selected_from_tree(
-                        sender=None,
-                        app_data=None,
-                        user_data=self.context_menu_active_note_id,
-                    )
-            print(
-                f"Note {self.context_menu_active_note_id} renamed to '{new_title}'")
-        dpg.configure_item(self.rename_note_window_tag, show=False)
-        self.context_menu_active_note_id = None  # Clear after operation
+        if not note_id_to_rename:
+            # self.logger.warning("[_context_rename_note_setup] No note ID provided.")
+            return
 
-    def _context_delete_note_from_context(self, sender, app_data, user_data):
-        note_id = user_data  # The note_id is passed as user_data
-        self.logger.info(
-            f"[_context_delete_note_from_context] Triggered for note ID: {note_id}"
-        )
-        if note_id:
-            # Find the note title for the confirmation dialog
-            note_to_delete = next(
-                (note for note in self.notes if note.id == note_id), None
+        # self.context_menu_active_note_id should already be set by _handle_note_sidebar_click
+        # but we confirm it or set it explicitly if necessary for robustness, though user_data is more direct here.
+        self.context_menu_active_note_id = note_id_to_rename
+
+        note_to_rename = next(
+            (n for n in self.notes if n.id == note_id_to_rename), None
             )
-            if note_to_delete:
-                # For now, directly delete. Consider adding a confirmation dialog.
-                # Example: dpg.add_text(f"Are you sure you want to delete '{note_to_delete.title}'?", parent=CONFIRMATION_DIALOG_TAG)
-                # For simplicity, calling _delete_note directly.
-                self._delete_note(note_id)  # _delete_note handles refresh
-            else:
-                self.logger.warning(
-                    f"[_context_delete_note_from_context] Note with ID {note_id} not found for deletion."
-                )
+
+        if note_to_rename:
+            # self.logger.debug(f"[_context_rename_note_setup] Note found: '{note_to_rename.title}'. Populating input field.")
+            dpg.set_value(self.rename_note_input_tag, note_to_rename.title)
+            dpg.configure_item(self.rename_note_window_tag, show=True)
         else:
-            self.logger.warning(
-                "[_context_delete_note_from_context] No note_id provided."
+            # self.logger.warning(f"[_context_rename_note_setup] Note with ID {note_id_to_rename} not found.")
+            self._show_error(
+                f"Could not find note with ID {note_id_to_rename} to rename."
+            )
+
+    def _execute_create_folder(self, sender, app_data, user_data):
+        folder_name = dpg.get_value(self.dialog_manager.new_folder_name_input_tag).strip()
+        folder_icon = dpg.get_value(self.dialog_manager.new_folder_icon_input_tag).strip()
+        parent_id = self.pending_new_folder_parent_id # This state is still managed by NotesModule
+
+        if not folder_name:
+            self._show_error("Folder name cannot be empty.")
+            # Keep dialog open, focus name input again
+            if dpg.does_item_exist(self.dialog_manager.new_folder_name_input_tag):
+                dpg.focus_item(self.dialog_manager.new_folder_name_input_tag)
+            return
+
+        # self.logger.info(f"Executing create folder: '{folder_name}' with icon '{folder_icon}' under parent ID: {parent_id}")
+        try:
+            new_order = self._get_next_order_in_parent(parent_id)
+            new_folder_schema = NoteCreate(
+                title=folder_name,
+                is_folder=True,
+                parent_id=parent_id,
+                content="",
+                icon=folder_icon if folder_icon else None,
+                order=new_order
+            )
+            created_folder = Note(**new_folder_schema.model_dump())
+            self.notes.append(created_folder)
+            self._save_notes()
+            self._refresh_sidebar_note_list()
+            # self.logger.info(f"Created folder '{created_folder.title}' (ID: {created_folder.id}) successfully.")
+        except Exception as e:
+            self.logger.error(f"Error executing create folder: {e}")
+            self._show_error(f"Failed to create folder: {e}")
+        finally:
+            dpg.configure_item(self.new_folder_dialog_tag, show=False)
+            dpg.set_value(self.new_folder_name_input_tag, "")
+            dpg.set_value(self.new_folder_icon_input_tag, "") # Clear icon input
+            self.pending_new_folder_parent_id = None
+
+    def _setup_delete_confirmation_dialog_tags(self):
+        # Call this in __init__ or ensure tags are defined before first use
+        if not hasattr(self, "delete_confirm_dialog_tag"):
+            self.delete_confirm_dialog_tag = dpg.generate_uuid()
+            self.delete_confirm_text_tag = dpg.generate_uuid()
+            self.delete_confirm_note_id_to_delete: Optional[str] = None
+
+            with dpg.window(
+                label="Confirm Deletion",
+                modal=True,
+                show=False,
+                tag=self.delete_confirm_dialog_tag,
+                width=400,
+                height=150,
+                no_resize=True,
+                no_close=True, # Prevent accidental close, force choice
+            ) as dialog_tag:
+                self.delete_confirm_text_tag = dpg.add_text(
+                    "Are you sure you want to delete this note?" # Initial simple text
+                )
+                dpg.add_separator()
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label="Yes, Delete",
+                        callback=self._execute_confirmed_delete,
+                        width=-1,
+                    )
+                    dpg.add_button(
+                        label="No, Cancel",
+                        callback=lambda: dpg.configure_item(
+                            self.delete_confirm_dialog_tag, show=False
+                        ),
+                        width=-1,
+                    )
+            # self.logger.info(f"Delete confirmation dialog ensured/created with tag: {dialog_tag}")
+        # else:
+            # self.logger.debug("Delete confirmation dialog already exists.")
+
+    def _show_delete_confirmation_dialog(self, note_id: str, note_title: str):
+        if not hasattr(self, "delete_confirm_dialog_tag") or not dpg.does_item_exist(
+            self.delete_confirm_dialog_tag
+        ):
+            self.logger.info(
+                "Delete confirmation dialog not set up, creating now.")
+        self._setup_delete_confirmation_dialog_tags()  # Ensure it exists
+
+        if not dpg.does_item_exist(self.delete_confirm_dialog_tag):
+            self.logger.error(
+                "Failed to create or find delete confirmation dialog. Cannot proceed."
+            )
+            self._show_error(
+                "Error: Delete confirmation dialog is unavailable.")
+            return
+
+        self.delete_confirm_note_id_to_delete = note_id
+        dpg.set_value(
+            self.delete_confirm_text_tag,
+            f"Are you sure you want to delete the note: '{note_title}'?\nThis action cannot be undone.",
+        )
+        dpg.configure_item(self.delete_confirm_dialog_tag, show=True)
+        # self.logger.debug(f"Showing delete confirmation for note ID: {note_id}, Title: '{note_title}'.")
+
+    def _execute_confirmed_delete(self, sender, app_data, user_data):
+        note_id_to_delete = self.delete_confirm_note_id_to_delete
+        # self.logger.debug(f"[_execute_confirmed_delete] Confirmation received to delete note ID: {note_id_to_delete}")
+
+        dpg.configure_item(
+            self.delete_confirm_dialog_tag, show=False
+        )  # Hide dialog first
+
+        if note_id_to_delete:
+            self._delete_note(
+                note_id_to_delete
+            )  # This method handles data, save, and UI refresh
+            # self.logger.info(f"[_execute_confirmed_delete] Note ID '{note_id_to_delete}' passed to _delete_note.")
+        else:
+            # self.logger.warning("[_execute_confirmed_delete] No note ID was stored for deletion.")
+            self._show_error(
+                "Error: Could not determine which note to delete.")
+        self.delete_confirm_note_id_to_delete = None  # Clear the stored ID
+
+    # Callback for 'Delete' from context menu
+    def _context_delete_note_from_context(self, sender, app_data, user_data):
+        note_id_to_delete = user_data  # This is the note_id from the context menu item
+        # self.logger.debug(f"[_context_delete_note_from_context] Request to delete note ID: {note_id_to_delete}")
+
+        if not note_id_to_delete:
+            # self.logger.warning("[_context_delete_note_from_context] No note ID provided.")
+            return
+
+        note_to_delete = next(
+            (n for n in self.notes if n.id == note_id_to_delete), None
+        )
+
+        if note_to_delete:
+            # self.logger.debug(f"[_context_delete_note_from_context] Note found: '{note_to_delete.title}'. Showing confirmation.")
+            # Ensure the dialog is set up before showing it
+            if not hasattr(self, "delete_confirm_dialog_tag"):
+                self._setup_delete_confirmation_dialog_tags()
+            self._show_delete_confirmation_dialog(
+                note_id_to_delete, note_to_delete.title
+            )
+        else:
+            # self.logger.warning(f"[_context_delete_note_from_context] Note with ID {note_id_to_delete} not found.")
+            self._show_error(
+                f"Could not find note with ID {note_id_to_delete} to delete."
             )
 
     def _context_move_note(self, sender, app_data, user_data):
-        note_id = user_data
-        self.logger.info(
-            f"[_context_move_note] Placeholder for moving note ID: {note_id}. Feature not yet implemented."
+        item_id_to_move = user_data
+        # self.logger.info(f"[_context_move_note] Request to move item ID: {item_id_to_move}")
+
+        item_being_moved = self._find_note_by_id(item_id_to_move) # Use helper
+        if not item_being_moved:
+            self._show_error(f"Cannot move: Item {item_id_to_move} not found.")
+            # self.logger.warning(f"[_context_move_note] Item with ID {item_id_to_move} not found for moving.")
+            return
+
+        self.item_to_move_id = item_id_to_move
+        item_base_icon = item_being_moved.icon if item_being_moved.icon and item_being_moved.icon.strip() else (self.ICON_FOLDER_DEFAULT if item_being_moved.is_folder else self.ICON_NOTE_DEFAULT)
+        item_display_name = f"{item_base_icon} {item_being_moved.title}"
+
+        if dpg.does_item_exist(self.move_item_label_tag):
+            dpg.set_value(self.move_item_label_tag, f"Moving: {item_display_name}")
+        else:
+            self.logger.error(f"[_context_move_note] Move item label tag {self.move_item_label_tag} does not exist.")
+
+
+        # Initialize with the "Root" option using the sentinel value
+        self.available_folders_for_move_dropdown = [
+            (f"{self.ICON_ROOT} Root", self.ROOT_SENTINEL_VALUE)
+        ]
+
+        ids_to_exclude = {item_id_to_move} # Exclude the item itself
+        if item_being_moved.is_folder:
+            descendant_ids = self._get_all_descendant_ids(item_id_to_move, self.notes)
+            ids_to_exclude.update(descendant_ids)
+            # self.logger.debug(f"[_context_move_note] Excluding item {item_id_to_move} and its descendants: {descendant_ids}")
+
+        # Sort folders by title for the dropdown
+        valid_destination_folders = sorted(
+            [note for note in self.notes if note.is_folder and note.id not in ids_to_exclude],
+            key=lambda f: f.title.lower()
         )
-        # Implementation for moving a note would go here.
-        # This might involve:
-        # 1. A dialog to select the new parent/folder.
-        # 2. Updating the note's parent_id or path attribute.
-        # 3. Refreshing the sidebar note list.
-        # 4. Saving changes.
-        dpg.configure_item(
-            self.core.get_main_app().COMMAND_BAR_CONTAINER_TAG, show=True
-        )  # Example: show command bar
-        self.core.get_main_app().command_bar.set_input_text(
-            f"Move note {note_id} to: (not implemented)"
-        )
+
+        for folder in valid_destination_folders:
+            self.available_folders_for_move_dropdown.append((folder.title, folder.id))
+
+        dropdown_labels = [item[0] for item in self.available_folders_for_move_dropdown]
+
+        if dpg.does_item_exist(self.move_item_destination_folder_dropdown_tag):
+            dpg.configure_item(self.move_item_destination_folder_dropdown_tag, items=dropdown_labels)
+            # Set default. If current parent is a valid destination, select it. Otherwise 'None (Root)' or first valid.
+            current_parent_label = "None (Root)"
+            if item_being_moved.parent_id:
+                current_parent_folder = next((f_title for f_title, f_id in self.available_folders_for_move_dropdown if f_id == item_being_moved.parent_id), None)
+                if current_parent_folder:
+                    current_parent_label = current_parent_folder
+
+            if current_parent_label in dropdown_labels:
+                 dpg.set_value(self.move_item_destination_folder_dropdown_tag, current_parent_label)
+            elif dropdown_labels: # Fallback to first item if current parent isn't valid or None (Root) isn't in filtered list
+                 dpg.set_value(self.move_item_destination_folder_dropdown_tag, dropdown_labels[0])
+        else:
+            self.logger.error("[_context_move_note] Destination folder dropdown DPG item does not exist!")
+
+        if dpg.does_item_exist(self.move_item_dialog_tag):
+            dpg.configure_item(self.move_item_dialog_tag, show=True)
+        else:
+            self.logger.error("[_context_move_note] 'Move Item Dialog' DPG item does not exist!")
+            self._show_error("Cannot open Move Item dialog.")
+
+    def _execute_move_item(self, sender, app_data, user_data):
+        # self.logger.info(f"[_execute_move_item] Called. Item to move ID: {self.item_to_move_id}")
+        selected_destination_label = dpg.get_value(self.move_item_destination_folder_dropdown_tag)
+
+        actual_new_parent_id: Optional[str] = None
+        found_label = False
+        for label, p_id_or_sentinel in self.available_folders_for_move_dropdown:
+            if label == selected_destination_label:
+                if p_id_or_sentinel == self.ROOT_SENTINEL_VALUE:
+                    actual_new_parent_id = None
+                else:
+                    actual_new_parent_id = p_id_or_sentinel # This is already an Optional[str]
+                found_label = True
+                break
+
+        if not found_label:
+            self._show_error("Error: Selected destination not found in available options.")
+            self.logger.error(f"[_execute_move_item] Selected label '{selected_destination_label}' not in {self.available_folders_for_move_dropdown}")
+            dpg.configure_item(self.move_item_dialog_tag, show=False)
+            return
+
+        if self.item_to_move_id is None:
+            self._show_error("Error: No item was identified to be moved.")
+            dpg.configure_item(self.move_item_dialog_tag, show=False)
+            return
+
+        item_to_update = self._find_note_by_id(self.item_to_move_id)
+        if not item_to_update:
+            self._show_error(f"Error: Item with ID {self.item_to_move_id} not found for moving.")
+            dpg.configure_item(self.move_item_dialog_tag, show=False)
+            self.item_to_move_id = None # Clear it
+            return
+
+        # Validation: Prevent moving a folder into itself or one of its own descendants
+        if item_to_update.is_folder:
+            if actual_new_parent_id == item_to_update.id: # Moving folder into itself
+                self._show_error("Cannot move a folder into itself.")
+                # self.logger.info("[_execute_move_item] Prevented moving folder into itself.")
+                return # Keep dialog open for user to correct
+
+            descendants_of_item_being_moved = self._get_all_descendant_ids(item_to_update.id, self.notes)
+            if actual_new_parent_id in descendants_of_item_being_moved:
+                self._show_error("Cannot move a folder into one of its own subfolders.")
+                # self.logger.info("[_execute_move_item] Prevented moving folder into a descendant.")
+                return # Keep dialog open
+
+        # Validation: Prevent moving to the current parent (no actual change)
+        if item_to_update.parent_id == actual_new_parent_id:
+            self._show_error(f"Item is already in the selected destination. No move performed.")
+            # self.logger.info(f"[_execute_move_item] Item '{item_to_update.title}' is already in parent '{actual_new_parent_id}'.")
+            # Not closing dialog here, user might want to pick another or cancel.
+            return
+
+        # self.logger.info(f"[_execute_move_item] Attempting to move '{item_to_update.title}' (ID: {self.item_to_move_id}) to parent ID: {actual_new_parent_id}")
+        try:
+            # Calculate order *before* changing parent_id if item is just reordering in same parent,
+            # but for a move to a *new* parent, order is based on target parent's current children.
+            new_order = self._get_next_order_in_parent(actual_new_parent_id)
+
+            item_to_update.parent_id = actual_new_parent_id
+            item_to_update.order = new_order
+            item_to_update.updated_at = datetime.utcnow()
+
+            self._save_notes()
+            self._refresh_sidebar_note_list()
+
+            # Update main view if the moved item was selected
+            if self.currently_selected_note_id == item_to_update.id:
+                self._update_note_display()
+
+            # self.logger.info(f"[_execute_move_item] Item '{item_to_update.title}' moved successfully to parent '{actual_new_parent_id}' with order {new_order}.")
+        except Exception as e:
+            self.logger.error(f"[_execute_move_item] Error moving item: {e}", exc_info=True)
+            self._show_error(f"Failed to move item: {e}")
+        finally:
+            dpg.configure_item(self.move_item_dialog_tag, show=False)
+            self.item_to_move_id = None # Clear the stored ID
+
+    def _get_all_descendant_ids(self, folder_id: str, notes_list: List[Note]) -> set[str]:
+        # self.logger.debug(f"[_get_all_descendant_ids] Getting descendants for folder_id: {folder_id}")
+        descendants = set()
+        children = [note for note in notes_list if note.parent_id == folder_id]
+        for child in children:
+            descendants.add(child.id)
+            if child.is_folder:
+                descendants.update(self._get_all_descendant_ids(child.id, notes_list))
+        # self.logger.debug(f"[_get_all_descendant_ids] Descendants for {folder_id}: {descendants}")
+        return descendants
+
+    def _get_next_order_in_parent(self, parent_id: Optional[str]) -> int:
+        """Calculates the next available order index for a given parent."""
+        if parent_id is None: # Root items
+            count = sum(1 for note in self.notes if note.parent_id is None)
+        else: # Items in a specific folder
+            count = sum(1 for note in self.notes if note.parent_id == parent_id)
+        return count
+
+    def _find_note_by_id(self, note_id: str) -> Optional[Note]:
+        """Finds a note or folder by its ID."""
+        return next((note for note in self.notes if note.id == note_id), None)
 
 
 # Make sure to add the new methods if they are not defined elsewhere.
@@ -1326,3 +1839,57 @@ class NotesModule(BaseModule):  # Renamed from NoteModule
 # Ensure `_on_note_selected_from_tree` correctly handles loading the note content.
 # Ensure `_open_editor` is correctly implemented and opens the editor with the note's data.
 # Ensure `_context_rename_note_setup`
+
+    def _execute_create_new_note(self, sender, app_data, user_data):
+        """Handles creation of a new note from the 'New Note Dialog'."""
+        # self.logger.info("[_execute_create_new_note] Creating note from dialog.")
+
+        title = dpg.get_value(self.new_note_title_input_tag).strip()
+        icon = dpg.get_value(self.new_note_icon_input_tag).strip()
+        selected_parent_label = dpg.get_value(self.new_note_parent_folder_dropdown_tag)
+
+        if not title:
+            self._show_error("Note title cannot be empty.")
+            # self.logger.warning("[_execute_create_new_note] Title was empty.")
+            dpg.focus_item(self.new_note_title_input_tag) # Keep dialog open and focus title
+            return
+
+        actual_parent_id: Optional[str] = None
+        # Find the parent_id from the label selected in the dropdown
+        for p_label, p_id in self.available_folders_for_new_note_dropdown:
+            if p_label == selected_parent_label:
+                actual_parent_id = p_id # This will be None if "None (Root)" was selected
+                break
+
+        # self.logger.debug(f"[_execute_create_new_note] Title: '{title}', Icon: '{icon}', Parent ID: {actual_parent_id}")
+
+        try:
+            new_order = self._get_next_order_in_parent(actual_parent_id)
+            note_create_data = NoteCreate(
+                title=title,
+                content="", # New notes start with empty content in the editor
+                is_folder=False,
+                parent_id=actual_parent_id,
+                icon=icon if icon else None, # Use icon if provided
+                order=new_order
+            )
+            new_note = Note(**note_create_data.model_dump())
+            self.notes.append(new_note)
+            self._save_notes()
+            self._refresh_sidebar_note_list()
+
+            dpg.configure_item(self.new_note_dialog_tag, show=False)
+            dpg.set_value(self.new_note_title_input_tag, "") # Clear for next time
+            dpg.set_value(self.new_note_icon_input_tag, "")   # Clear for next time
+            # Default dropdown to root for next time is handled by _create_new_note setup
+
+            # Open the editor for the new note
+            self._open_editor(new_note)
+            # self.logger.info(f"[_execute_create_new_note] Successfully created and opened new note: {new_note.id}")
+
+        except ValidationError as e:
+            self.logger.error(f"[_execute_create_new_note] Validation error: {e.errors()}")
+            self._show_error(f"Validation Error: {e.errors()[0]['msg'] if e.errors() else 'Invalid data'}")
+        except Exception as e:
+            self.logger.error(f"[_execute_create_new_note] Failed to create new note: {e}", exc_info=True)
+            self._show_error(f"Failed to create new note: {e}")
