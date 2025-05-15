@@ -1,6 +1,6 @@
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
+
 import dearpygui.dearpygui as dpg
-from typing import TYPE_CHECKING, Union, Optional, Dict, Any, cast
-import asyncio  # Added for task creation
 
 # Removed Flet-specific ThemeManager import
 from .base_module import BaseModule
@@ -18,7 +18,7 @@ class SettingsModule(BaseModule):
         # self.dpg_theme_radio_tag: Union[int, str] = 0 # Removed
         # self.current_theme_name: str = "Dark" # Removed, will get from ThemeManager
 
-        self.theme_manager: Optional["ThemeManager"] = None
+        self.theme_manager: Optional[ThemeManager] = None
         if hasattr(self.core, "theme_manager") and self.core.theme_manager is not None:
             self.theme_manager = self.core.theme_manager
 
@@ -60,18 +60,19 @@ class SettingsModule(BaseModule):
             self.dpg_theme_combo_tag is None or self.font_combo_tag is None
         ):  # Added font_combo_tag check
             print(
-                "[SettingsModule.build_dpg_view] DPG tags not fully initialized. Calling initialize_dpg_tags."
+                "[SettingsModule.build_dpg_view] DPG tags not fully initialized. Calling initialize_dpg_tags.",
             )
             self.initialize_dpg_tags()  # Initialize if they weren't already
             if (
                 self.dpg_theme_combo_tag is None or self.font_combo_tag is None
             ):  # Check again
                 print(
-                    "[SettingsModule.build_dpg_view] CRITICAL: DPG tags still None after initialization attempt."
+                    "[SettingsModule.build_dpg_view] CRITICAL: DPG tags still None after initialization attempt.",
                 )
                 with dpg.group(parent=parent_container_tag):
                     dpg.add_text(
-                        "Error: Settings module critical failure.", color=(255, 0, 0)
+                        "Error: Settings module critical failure.",
+                        color=(255, 0, 0),
                     )
                 return
 
@@ -88,7 +89,7 @@ class SettingsModule(BaseModule):
 
         with dpg.group(parent=parent_container_tag):
             dpg.add_text(
-                "Application Settings"
+                "Application Settings",
             )  # Removed color for now, theme will handle
             dpg.add_separator()
             dpg.add_text("Select Theme:")
@@ -104,7 +105,7 @@ class SettingsModule(BaseModule):
                 dpg.add_text("Changes take effect immediately")
             dpg.add_text(
                 f"Current: {default_combo_theme}",
-                tag=cast(Union[int, str], self.dpg_current_theme_text_tag),
+                tag=cast("Union[int, str]", self.dpg_current_theme_text_tag),
             )
             dpg.add_separator()
             dpg.add_text("Font Settings:")
@@ -175,7 +176,7 @@ class SettingsModule(BaseModule):
         if combo_tag is None:
             # If the combo tag hasn\'t been generated, nothing to update
             print(
-                "[SettingsModule.load_data] Error: Combo tag not initialized."
+                "[SettingsModule.load_data] Error: Combo tag not initialized.",
             )  # ADD LOG
             return
 
@@ -199,7 +200,6 @@ class SettingsModule(BaseModule):
 
         if displayed_theme_name_for_text is not None:
             self.update_displayed_theme_name(displayed_theme_name_for_text)
-        pass
 
     def _update_font(self, font_name: str):
         if self.core.theme_manager and self.dpg_status_text_tag:
@@ -220,19 +220,20 @@ class SettingsModule(BaseModule):
                 if self.core and self.core.config:
                     self.core.config.save_config()
                     print(
-                        f"[SettingsModule] Font size updated to {size}pt and config saved."
+                        f"[SettingsModule] Font size updated to {size}pt and config saved.",
                     )
 
                 if self.font_combo_tag is not None and dpg.does_item_exist(
-                    self.font_combo_tag
+                    self.font_combo_tag,
                 ):
                     dpg.set_value(
-                        self.font_combo_tag, self.core.theme_manager.current_font
+                        self.font_combo_tag,
+                        self.core.theme_manager.current_font,
                     )
 
                 # Explicitly apply the new global font to the font size input widget itself
                 if self.font_size_input_tag is not None and dpg.does_item_exist(
-                    self.font_size_input_tag
+                    self.font_size_input_tag,
                 ):
                     current_app_font_dpg_tag = (
                         self.core.theme_manager.get_last_globally_bound_dpg_font_tag()
@@ -243,18 +244,19 @@ class SettingsModule(BaseModule):
                         or current_app_font_dpg_tag == 0
                     ):
                         dpg.bind_item_font(
-                            self.font_size_input_tag, current_app_font_dpg_tag
+                            self.font_size_input_tag,
+                            current_app_font_dpg_tag,
                         )
                         print(
-                            f"[SettingsModule] Applied font tag {current_app_font_dpg_tag} to font size input widget."
+                            f"[SettingsModule] Applied font tag {current_app_font_dpg_tag} to font size input widget.",
                         )
                     else:
                         print(
-                            f"[SettingsModule] Warning: Could not bind font tag {current_app_font_dpg_tag} to font size input. Tag might not exist."
+                            f"[SettingsModule] Warning: Could not bind font tag {current_app_font_dpg_tag} to font size input. Tag might not exist.",
                         )
                 else:
                     print(
-                        "[SettingsModule] Warning: Font size input tag not found, cannot apply font to it."
+                        "[SettingsModule] Warning: Font size input tag not found, cannot apply font to it.",
                     )
 
             except ValueError as e:
@@ -265,7 +267,7 @@ class SettingsModule(BaseModule):
             self.core.theme_manager.reset_font_settings()
 
             if self.font_combo_tag is not None and dpg.does_item_exist(
-                self.font_combo_tag
+                self.font_combo_tag,
             ):
                 dpg.set_value(self.font_combo_tag,
                               self.core.theme_manager.current_font)
@@ -324,11 +326,11 @@ class SettingsModule(BaseModule):
 
     def build_font_selection(self):
         print(
-            "[SettingsModule.build_font_selection] Attempting to build font selection UI..."
+            "[SettingsModule.build_font_selection] Attempting to build font selection UI...",
         )
         if not self.core.theme_manager or self.font_combo_tag is None:
             print(
-                "[SettingsModule.build_font_selection] Theme manager or font_combo_tag not available. Aborting."
+                "[SettingsModule.build_font_selection] Theme manager or font_combo_tag not available. Aborting.",
             )
             return
 
@@ -377,11 +379,13 @@ class SettingsModule(BaseModule):
                 items=font_items,
                 default_value=current_font_display_name,  # Use DISPLAY NAME
                 callback=lambda s, a_d, u_d: self._on_font_changed(
-                    s, a_d, font_map
+                    s,
+                    a_d,
+                    font_map,
                 ),  # Pass font_map
             )
             print(
-                f"[SettingsModule.build_font_selection] Configured existing font combo: {self.font_combo_tag}"
+                f"[SettingsModule.build_font_selection] Configured existing font combo: {self.font_combo_tag}",
             )
         else:
             # This should be the primary path if tags are unique per module instance build
@@ -391,22 +395,28 @@ class SettingsModule(BaseModule):
                 default_value=current_font_display_name,  # Use DISPLAY NAME
                 label="Font",
                 callback=lambda s, a_d, u_d: self._on_font_changed(
-                    s, a_d, font_map
+                    s,
+                    a_d,
+                    font_map,
                 ),  # Pass font_map
                 width=200,
             )
             print(
-                f"[SettingsModule.build_font_selection] Created new font combo: {self.font_combo_tag}"
+                f"[SettingsModule.build_font_selection] Created new font combo: {self.font_combo_tag}",
             )
 
     def _on_font_changed(
-        self, sender: int, selected_display_name: Any, font_map: Dict[str, str]
+        self,
+        sender: int,
+        selected_display_name: Any,
+        font_map: Dict[str, str],
     ):
         actual_font_name = font_map.get(
-            selected_display_name, selected_display_name
+            selected_display_name,
+            selected_display_name,
         )  # Fallback to raw if not in map
         print(
-            f"[SettingsModule._on_font_changed] Selected display: '{selected_display_name}', actual font: '{actual_font_name}'"
+            f"[SettingsModule._on_font_changed] Selected display: '{selected_display_name}', actual font: '{actual_font_name}'",
         )
         self._update_font(actual_font_name)
 

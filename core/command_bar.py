@@ -70,8 +70,7 @@ class CommandBar:
                     f"Error: Module '{module_key}' not recognized.", is_error=True
                 )
         else:
-            self._set_status_message(
-                "Error: Cannot switch modules.", is_error=True)
+            self._set_status_message("Error: Cannot switch modules.", is_error=True)
 
     def _cmd_apply_theme(self, theme_name: str):
         print(f"[CommandBar] Attempting to apply theme: {theme_name}")
@@ -97,8 +96,7 @@ class CommandBar:
             )
             # Optionally, create a placeholder or error message in the UI
             with dpg.group(parent=parent_tag):
-                dpg.add_text("Error: CommandBar not initialized.",
-                             color=(255, 0, 0))
+                dpg.add_text("Error: CommandBar not initialized.", color=(255, 0, 0))
             return
 
         with dpg.group(
@@ -147,15 +145,14 @@ class CommandBar:
                 self._set_status_message(
                     f"Error executing command '{command_text}': {e}", is_error=True
                 )
-                print(
-                    f"[CommandBar] Exception executing command '{command_text}': {e}")
+                print(f"[CommandBar] Exception executing command '{command_text}': {e}")
             dpg.set_value(self.input_tag, "")  # Clear input after processing
             return
 
         # Check for partial matches for theme commands (e.g. "theme calm" -> "theme calm green")
         # This is a simple prefix match, can be expanded
         if command_text.startswith("theme "):
-            partial_theme_name = command_text[len("theme "):]
+            partial_theme_name = command_text[len("theme ") :]
             matched_theme = None
             for full_theme_command in self.commands.keys():
                 if (

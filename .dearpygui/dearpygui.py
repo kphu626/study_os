@@ -158,7 +158,8 @@ def popup(
         internal_dpg.add_item_clicked_handler(
             mousebutton,
             parent=internal_dpg.last_item(),
-            callback=lambda: internal_dpg.configure_item(_internal_popup_id, show=True),
+            callback=lambda: internal_dpg.configure_item(
+                _internal_popup_id, show=True),
         )
         internal_dpg.bind_item_handler_registry(parent, _handler_reg_id)
         if modal:
@@ -1184,13 +1185,11 @@ def is_viewport_decorated() -> bool:
 
 
 def deprecated(reason):
-
     string_types = (type(b""), type(""))
 
     if isinstance(reason, string_types):
 
         def decorator(func1):
-
             fmt1 = "Call to deprecated function {name} ({reason})."
 
             @functools.wraps(func1)
@@ -1209,7 +1208,6 @@ def deprecated(reason):
         return decorator
 
     elif inspect.isfunction(reason):
-
         func2 = reason
         fmt2 = "Call to deprecated function {name}."
 
@@ -1467,7 +1465,8 @@ def add_same_line(**kwargs):
     last_item = internal_dpg.last_item()
     group = internal_dpg.add_group(horizontal=True, **kwargs)
     internal_dpg.move_item(last_item, parent=group)
-    internal_dpg.capture_next_item(lambda s: internal_dpg.move_item(s, parent=group))
+    internal_dpg.capture_next_item(
+        lambda s: internal_dpg.move_item(s, parent=group))
     return group
 
 
@@ -1717,7 +1716,6 @@ def child_window(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -1795,7 +1793,6 @@ def clipper(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -1875,7 +1872,6 @@ def collapsing_header(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -1933,7 +1929,6 @@ def colormap_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -1998,7 +1993,6 @@ def custom_series(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2059,7 +2053,6 @@ def drag_payload(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2114,7 +2107,6 @@ def draw_layer(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2164,7 +2156,6 @@ def draw_node(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2227,7 +2218,6 @@ def drawlist(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2300,7 +2290,6 @@ def file_dialog(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2362,7 +2351,6 @@ def filter_set(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2415,13 +2403,13 @@ def font(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
 
         if "default_font" in kwargs.keys():
-            warnings.warn("default_font keyword removed", DeprecationWarning, 2)
+            warnings.warn("default_font keyword removed",
+                          DeprecationWarning, 2)
             kwargs.pop("default_font", None)
         widget = internal_dpg.add_font(
             file,
@@ -2463,7 +2451,6 @@ def font_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2539,7 +2526,6 @@ def group(
                     Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2597,7 +2583,6 @@ def handler_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2638,7 +2623,6 @@ def item_handler_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2699,7 +2683,6 @@ def menu(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2756,7 +2739,6 @@ def menu_bar(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2822,7 +2804,6 @@ def node(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2892,7 +2873,6 @@ def node_attribute(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -2968,7 +2948,6 @@ def node_editor(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3111,13 +3090,13 @@ def plot(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
 
         if "no_highlight" in kwargs.keys():
-            warnings.warn("no_highlight keyword removed", DeprecationWarning, 2)
+            warnings.warn("no_highlight keyword removed",
+                          DeprecationWarning, 2)
             kwargs.pop("no_highlight", None)
 
         if "no_child" in kwargs.keys():
@@ -3125,11 +3104,13 @@ def plot(
             kwargs.pop("no_child", None)
 
         if "anti_aliased" in kwargs.keys():
-            warnings.warn("anti_aliased keyword removed", DeprecationWarning, 2)
+            warnings.warn("anti_aliased keyword removed",
+                          DeprecationWarning, 2)
             kwargs.pop("anti_aliased", None)
 
         if "query_button" in kwargs.keys():
-            warnings.warn("query_button keyword removed", DeprecationWarning, 2)
+            warnings.warn("query_button keyword removed",
+                          DeprecationWarning, 2)
             kwargs.pop("query_button", None)
 
         if "query_mod" in kwargs.keys():
@@ -3260,7 +3241,6 @@ def plot_axis(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3335,7 +3315,6 @@ def stage(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3425,7 +3404,6 @@ def subplots(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3515,7 +3493,6 @@ def tab(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3588,7 +3565,6 @@ def tab_bar(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3717,7 +3693,6 @@ def table(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3805,7 +3780,6 @@ def table_cell(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3858,7 +3832,6 @@ def table_row(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3901,7 +3874,6 @@ def template_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3941,7 +3913,6 @@ def texture_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -3981,13 +3952,13 @@ def theme(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
 
         if "default_theme" in kwargs.keys():
-            warnings.warn("default_theme keyword removed", DeprecationWarning, 2)
+            warnings.warn("default_theme keyword removed",
+                          DeprecationWarning, 2)
             kwargs.pop("default_theme", None)
         widget = internal_dpg.add_theme(
             label=label,
@@ -4031,7 +4002,6 @@ def theme_component(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4081,7 +4051,6 @@ def tooltip(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4163,7 +4132,6 @@ def tree_node(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4221,7 +4189,6 @@ def value_registry(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4267,7 +4234,6 @@ def viewport_drawlist(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4317,7 +4283,6 @@ def viewport_menu_bar(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4415,7 +4380,6 @@ def window(
             Union[int, str]
     """
     try:
-
         if "id" in kwargs.keys():
             warnings.warn("id keyword renamed to tag", DeprecationWarning, 2)
             tag = kwargs["id"]
@@ -4564,7 +4528,8 @@ def add_3d_slider(
     filter_key: str = "",
     tracked: bool = False,
     track_offset: float = 0.5,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     max_x: float = 100.0,
     max_y: float = 100.0,
     max_z: float = 100.0,
@@ -5820,7 +5785,8 @@ def add_color_value(
     use_internal_label: bool = True,
     tag: Union[int, str] = 0,
     source: Union[int, str] = 0,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     parent: Union[int, str] = internal_dpg.mvReservedUUID_3,
     **kwargs,
 ) -> Union[int, str]:
@@ -6075,7 +6041,6 @@ def add_colormap_scale(
         tag = kwargs["id"]
 
     if "drag_callback" in kwargs.keys():
-
         warnings.warn("drag_callback keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("drag_callback", None)
@@ -6159,7 +6124,6 @@ def add_colormap_slider(
         tag = kwargs["id"]
 
     if "drag_callback" in kwargs.keys():
-
         warnings.warn("drag_callback keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("drag_callback", None)
@@ -6889,7 +6853,8 @@ def add_drag_floatx(
     filter_key: str = "",
     tracked: bool = False,
     track_offset: float = 0.5,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     size: int = 4,
     format: str = "%0.3f",
     speed: float = 1.0,
@@ -7886,7 +7851,8 @@ def add_float4_value(
     use_internal_label: bool = True,
     tag: Union[int, str] = 0,
     source: Union[int, str] = 0,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     parent: Union[int, str] = internal_dpg.mvReservedUUID_3,
     **kwargs,
 ) -> Union[int, str]:
@@ -8039,7 +8005,6 @@ def add_font(
         tag = kwargs["id"]
 
     if "default_font" in kwargs.keys():
-
         warnings.warn("default_font keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("default_font", None)
@@ -8466,7 +8431,8 @@ def add_histogram_series(
         tag = kwargs["id"]
 
     if "cumlative" in kwargs.keys():
-        warnings.warn("cumlative keyword renamed to cumulative", DeprecationWarning, 2)
+        warnings.warn("cumlative keyword renamed to cumulative",
+                      DeprecationWarning, 2)
         cumulative = kwargs["cumlative"]
 
     return internal_dpg.add_histogram_series(
@@ -9142,7 +9108,8 @@ def add_input_floatx(
     filter_key: str = "",
     tracked: bool = False,
     track_offset: float = 0.5,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     format: str = "%.3f",
     min_value: float = 0.0,
     max_value: float = 100.0,
@@ -10822,7 +10789,6 @@ def add_menu_item(
         tag = kwargs["id"]
 
     if "drag_callback" in kwargs.keys():
-
         warnings.warn("drag_callback keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("drag_callback", None)
@@ -11602,31 +11568,26 @@ def add_plot(
         tag = kwargs["id"]
 
     if "no_highlight" in kwargs.keys():
-
         warnings.warn("no_highlight keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("no_highlight", None)
 
     if "no_child" in kwargs.keys():
-
         warnings.warn("no_child keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("no_child", None)
 
     if "anti_aliased" in kwargs.keys():
-
         warnings.warn("anti_aliased keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("anti_aliased", None)
 
     if "query_button" in kwargs.keys():
-
         warnings.warn("query_button keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("query_button", None)
 
     if "query_mod" in kwargs.keys():
-
         warnings.warn("query_mod keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("query_mod", None)
@@ -12842,7 +12803,8 @@ def add_slider_floatx(
     filter_key: str = "",
     tracked: bool = False,
     track_offset: float = 0.5,
-    default_value: Union[List[float], Tuple[float, ...]] = (0.0, 0.0, 0.0, 0.0),
+    default_value: Union[List[float], Tuple[float, ...]] = (
+        0.0, 0.0, 0.0, 0.0),
     size: int = 4,
     no_input: bool = False,
     clamped: bool = False,
@@ -14342,7 +14304,6 @@ def add_theme(
         tag = kwargs["id"]
 
     if "default_theme" in kwargs.keys():
-
         warnings.warn("default_theme keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("default_theme", None)
@@ -17495,7 +17456,6 @@ def setup_dearpygui(**kwargs) -> None:
     """
 
     if "viewport" in kwargs.keys():
-
         warnings.warn("viewport keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("viewport", None)
@@ -17563,7 +17523,6 @@ def show_viewport(
     """
 
     if "viewport" in kwargs.keys():
-
         warnings.warn("viewport keyword removed", DeprecationWarning, 2)
 
         kwargs.pop("viewport", None)
