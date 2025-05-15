@@ -72,7 +72,7 @@ class StudyOS:
     LOADING_TEXT_TAG = "loading_text_indicator"
     CONTENT_AREA_TAG = "content_area_group"
     MODULE_VIEW_AREA_TAG = "module_view_area_group"
-    SIDEBAR_TAG = "sidebar_group"
+    SIDEBAR_TAG = "studos_sidebar_group"
     SIDEBAR_ACTUAL_WINDOW_TAG = "sidebar_actual_window_content_area"  # New unique tag
     MAIN_CONTENT_GROUP_TAG = "main_content_group"
     SIDEBAR_TOGGLE_BTN_TAG = "sidebar_toggle_button"
@@ -238,7 +238,7 @@ class StudyOS:
                                 tag=self.SIDEBAR_TOGGLE_BTN_TAG,
                                 callback=self._toggle_sidebar,
                                 width=30,
-                                height=30
+                                height=30,
                             )
                             with dpg.tooltip(self.SIDEBAR_TOGGLE_BTN_TAG):
                                 dpg.add_text("Toggle Sidebar Visibility")
@@ -354,75 +354,6 @@ class StudyOS:
                             ),
                         )
 
-            # Create main layout groups that will sit next to each other
-            with dpg.group(
-                horizontal=True, parent=self.PRIMARY_WINDOW_TAG
-            ):  # This group makes children arrange horizontally
-                # --- Sidebar Area ---
-                # Create the main sidebar group first
-                with dpg.group(tag=self.SIDEBAR_TAG, width=250, show=True):
-                    # Now, the child window for scrollable content *within* this sidebar_group
-                    # self.SIDEBAR_WINDOW_TAG will store the ID of this child window.
-                    self.SIDEBAR_WINDOW_TAG = dpg.add_child_window(
-                        parent=self.SIDEBAR_TAG,  # Explicitly parent to the group above
-                        # Use the new unique tag for this child window
-                        tag=self.SIDEBAR_ACTUAL_WINDOW_TAG,
-                        border=True,  # The child window can have the border if desired
-                    )
-                    # Modules will build their sidebar views into self.SIDEBAR_ACTUAL_WINDOW_TAG
-
-                # --- Main Content Area (Tabs + Module View) ---
-                self.MAIN_CONTENT_GROUP_TAG = dpg.add_group(
-                    width=-1  # Take remaining width
-                )
-
-                # Top controls (like sidebar toggle) above the tab bar
-                with dpg.group(
-                    horizontal=True,
-                    parent=self.MAIN_CONTENT_GROUP_TAG,
-                    tag=self.TOP_CONTROLS_GROUP_TAG,
-                ):
-                    dpg.add_button(
-                        label="«",
-                        tag=self.SIDEBAR_TOGGLE_BTN_TAG,
-                        callback=self._toggle_sidebar,
-                        width=30,
-                    )
-                    # Placeholder for other top controls if needed
-
-                # Tab Bar for modules
-                with dpg.tab_bar(
-                    tag="module_tab_bar",
-                    parent=self.MAIN_CONTENT_GROUP_TAG,
-                    reorderable=True,
-                    callback=self._on_tab_selected,
-                ) as self.module_tab_bar_tag:
-                    for (
-                        module_key,
-                        module_instance,
-                    ) in self.registered_module_instances.items():
-                        tab_tag = dpg.generate_uuid()
-                        # Store mapping
-                        self.tab_id_to_module[tab_tag] = module_key
-                        with dpg.tab(
-                            label=module_instance.display_name,
-                            tag=tab_tag,
-                            parent=self.module_tab_bar_tag,
-                        ):
-                            # Create a dedicated content group for this tab
-                            # This is where the module's build_dpg_view will place its content
-                            dpg.add_group(tag=f"tab_content_{module_key}")
-                            # Add a placeholder text or loading indicator initially
-                            # dpg.add_text(f"Content for {module_instance.display_name}", tag=f"placeholder_{module_key}")
-
-            # Initialize CommandBar (needs to be after primary window setup if it uses it as parent)
-            if self.command_bar:
-                print("[StudyOS._init_dpg_ui_layout] Building Command Bar view...")
-                self.command_bar.build_dpg_view(
-                    parent_tag=self.PRIMARY_WINDOW_TAG
-                )  # Changed to parent_tag
-                print("[StudyOS._init_dpg_ui_layout] Command Bar view built.")
-
         except Exception as e:
             print(
                 f"[StudyOS._init_dpg_ui_layout] Error initializing DPG UI layout: {e}"
@@ -431,7 +362,9 @@ class StudyOS:
 
     def _toggle_sidebar(self, sender, app_data, user_data):
         """Toggles the visibility of the sidebar group."""
-        SIDEBAR_TAG = "sidebar_group"  # Define locally or access via self if stored
+        SIDEBAR_TAG = (
+            "studos_sidebar_group"  # Define locally or access via self if stored
+        )
         SIDEBAR_TOGGLE_BTN_TAG = (
             "sidebar_toggle_button"  # Define locally or access via self
         )

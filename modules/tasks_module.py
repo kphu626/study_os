@@ -45,7 +45,8 @@ class TaskModule(BaseModule):
         loaded_tasks: List[TaskResponse] = []
         if self.data_path.exists() and self.data_path.stat().st_size > 0:
             try:
-                raw_data = json.loads(self.data_path.read_text(encoding="utf-8"))
+                raw_data = json.loads(
+                    self.data_path.read_text(encoding="utf-8"))
                 if isinstance(raw_data, list):
                     for task_item_data in raw_data:
                         if isinstance(task_item_data, dict):
@@ -71,7 +72,8 @@ class TaskModule(BaseModule):
                                     )
                                     del task_item_data["created"]
 
-                                loaded_tasks.append(TaskResponse(**task_item_data))
+                                loaded_tasks.append(
+                                    TaskResponse(**task_item_data))
                             except ValidationError as e:
                                 print(
                                     f"Skipping a task due to validation error: {e.errors()}"
@@ -114,7 +116,8 @@ class TaskModule(BaseModule):
         except Exception as e:
             print(f"Error saving tasks to {self.data_path}: {e}")
             if dpg.does_item_exist(self.dpg_status_text_tag):
-                dpg.set_value(self.dpg_status_text_tag, f"Error saving tasks: {e}")
+                dpg.set_value(self.dpg_status_text_tag,
+                              f"Error saving tasks: {e}")
 
     def load_data(self):
         """Loads tasks from file into self.tasks and refreshes the DPG list."""
@@ -168,7 +171,8 @@ class TaskModule(BaseModule):
                 dpg.add_text("Optional due date in format: YYYY-MM-DD")
 
             dpg.add_spacer(height=10)
-            self.dpg_status_text_tag = dpg.add_text("", tag=self.dpg_status_text_tag)
+            self.dpg_status_text_tag = dpg.add_text(
+                "", tag=self.dpg_status_text_tag)
             dpg.add_separator()
 
             # Task list section
@@ -277,7 +281,8 @@ class TaskModule(BaseModule):
 
         # Find and remove the task
         original_len = len(self.tasks)
-        self.tasks = [task for task in self.tasks if task.id != task_id_to_delete]
+        self.tasks = [
+            task for task in self.tasks if task.id != task_id_to_delete]
 
         if len(self.tasks) < original_len:
             self._save_tasks_to_file()
@@ -293,7 +298,8 @@ class TaskModule(BaseModule):
 
     def _dpg_add_task_callback(self, sender, app_data, user_data):
         description = dpg.get_value(self.dpg_description_input_tag)
-        deadline_str: Optional[str] = dpg.get_value(self.dpg_deadline_input_tag)
+        deadline_str: Optional[str] = dpg.get_value(
+            self.dpg_deadline_input_tag)
 
         if not description.strip():
             dpg.set_value(
@@ -324,20 +330,23 @@ class TaskModule(BaseModule):
             for error in exc.errors():
                 loc = " -> ".join(map(str, error["loc"]))
                 error_messages.append(f"Field '{loc}': {error['msg']}")
-            full_error_msg = "Validation Error(s): " + "; ".join(error_messages)
+            full_error_msg = "Validation Error(s): " + \
+                "; ".join(error_messages)
             dpg.set_value(self.dpg_status_text_tag, full_error_msg)
             print(
                 f"Task creation validation error: {exc.errors()}"
             )  # Log detailed errors
         except Exception as e:
-            dpg.set_value(self.dpg_status_text_tag, f"Error adding task: {str(e)}")
+            dpg.set_value(self.dpg_status_text_tag,
+                          f"Error adding task: {str(e)}")
             print(f"Error adding task: {e}")
 
     def handle_keyboard(self, key_code: int):
         ENTER_KEY = 532  # Verify with your system
         if key_code == ENTER_KEY:
             # Provide default values for callback parameters
-            self._dpg_add_task_callback(sender=None, app_data=None, user_data=None)
+            self._dpg_add_task_callback(
+                sender=None, app_data=None, user_data=None)
 
     def get_focusable_items(self):
         return [self.dpg_description_input_tag, self.dpg_deadline_input_tag]

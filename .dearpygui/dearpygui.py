@@ -13,6 +13,7 @@
 #     * Discussions: https://github.com/hoffstadt/DearPyGui/discussions
 ##########################################################
 
+from typing import Union
 from typing import List, Any, Callable, Union, Tuple
 from contextlib import contextmanager
 import warnings
@@ -1180,8 +1181,6 @@ def is_viewport_decorated() -> bool:
 ##########################################################
 # Deprecated Commands
 ##########################################################
-
-from typing import Union
 
 
 def deprecated(reason):

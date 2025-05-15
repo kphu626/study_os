@@ -63,7 +63,8 @@ class UnifiedGuardian:
             self.show_notification(f"Processed {path.name}")
 
         except Exception as exc:
-            self.show_notification(f"Error in {path.name}: {str(exc)}", error=True)
+            self.show_notification(
+                f"Error in {path.name}: {str(exc)}", error=True)
 
     def show_notification(self, message: str, error: bool = False):
         color = "\033[91m" if error else "\033[92m"
@@ -155,7 +156,7 @@ class CodebaseDoctor:
                 if not temp_line.endswith(":"):
                     corrected_line = line + ":"
 
-            # Fix incorrectly escaped triple quotes like \"\"\" to """
+            # Fix incorrectly escaped triple quotes like """ to """
             corrected_line = re.sub(r'\\"\\"\\"', '"""', corrected_line)
 
             processed_lines.append(corrected_line)
@@ -179,7 +180,8 @@ class CodebaseDoctor:
     def _black_format(self, code: str) -> str:
         """Format with Black's strict mode"""
         return black.format_str(
-            code, mode=black.FileMode(line_length=88, string_normalization=True)
+            code, mode=black.FileMode(
+                line_length=88, string_normalization=True)
         )
 
     def _fix_def_colon(self, node):

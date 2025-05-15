@@ -1,15 +1,18 @@
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+
 import dearpygui.dearpygui as dpg
-from typing import TYPE_CHECKING, Optional, Union, List, Tuple
 
 if TYPE_CHECKING:
-    from .notes_module import NotesModule # Forward reference for type hinting
+    from .notes_module import NotesModule  # Forward reference for type hinting
+
     # from core.app import Core # If Core access is needed directly
 
+
 class NotesDialogManager:
-    def __init__(self, notes_module: 'NotesModule'):
+    def __init__(self, notes_module: "NotesModule"):
         self.nm = notes_module  # Reference to the main notes module
         self.core = notes_module.core
-        self.logger = notes_module.logger # Assuming NotesModule has a logger
+        self.logger = notes_module.logger  # Assuming NotesModule has a logger
 
         # --- Dialog DPG Tags ---
         self.new_folder_dialog_tag: Union[int, str] = dpg.generate_uuid()
@@ -46,17 +49,22 @@ class NotesDialogManager:
                     tag=self.new_folder_name_input_tag, label="Folder Name", width=-1
                 )
                 dpg.add_input_text(
-                    tag=self.new_folder_icon_input_tag, label="Icon (emoji)", width=-1, hint="e.g., 📁 or ✨"
+                    tag=self.new_folder_icon_input_tag,
+                    label="Icon (emoji)",
+                    width=-1,
+                    hint="e.g., 📁 or ✨",
                 )
                 with dpg.group(horizontal=True):
                     dpg.add_button(
                         label="Create Folder",
-                        callback=self.nm._execute_create_folder, # Call NotesModule's method
+                        callback=self.nm._execute_create_folder,  # Call NotesModule's method
                         width=-1,
                     )
                     dpg.add_button(
                         label="Cancel",
-                        callback=lambda: dpg.configure_item(self.new_folder_dialog_tag, show=False),
+                        callback=lambda: dpg.configure_item(
+                            self.new_folder_dialog_tag, show=False
+                        ),
                         width=-1,
                     )
 
@@ -72,28 +80,36 @@ class NotesDialogManager:
                 no_resize=True,
             ):
                 dpg.add_input_text(
-                    tag=self.new_note_title_input_tag, label="Note Title", width=-1, hint="Enter title for your new note..."
+                    tag=self.new_note_title_input_tag,
+                    label="Note Title",
+                    width=-1,
+                    hint="Enter title for your new note...",
                 )
                 dpg.add_input_text(
-                    tag=self.new_note_icon_input_tag, label="Icon (emoji)", width=-1, hint="e.g., ✨ or 📝"
+                    tag=self.new_note_icon_input_tag,
+                    label="Icon (emoji)",
+                    width=-1,
+                    hint="e.g., ✨ or 📝",
                 )
                 dpg.add_text("Parent Folder:")
                 dpg.add_combo(
                     tag=self.new_note_parent_folder_dropdown_tag,
-                    items=[], # Will be populated by show_new_note_dialog
+                    items=[],  # Will be populated by show_new_note_dialog
                     width=-1,
-                    default_value="None (Root)"
+                    default_value="None (Root)",
                 )
                 dpg.add_spacer(height=5)
                 with dpg.group(horizontal=True):
                     dpg.add_button(
                         label="Create Note & Edit",
-                        callback=self.nm._execute_create_new_note, # Call NotesModule's method
+                        callback=self.nm._execute_create_new_note,  # Call NotesModule's method
                         width=-1,
                     )
                     dpg.add_button(
                         label="Cancel",
-                        callback=lambda: dpg.configure_item(self.new_note_dialog_tag, show=False),
+                        callback=lambda: dpg.configure_item(
+                            self.new_note_dialog_tag, show=False
+                        ),
                         width=-1,
                     )
 
@@ -101,7 +117,9 @@ class NotesDialogManager:
     def show_new_folder_dialog(self, parent_id: Optional[str]):
         """Sets up and shows the 'New Folder Dialog'."""
         # self.logger.info(f"[NotesDialogManager.show_new_folder_dialog] Parent ID: {parent_id}")
-        self.nm.pending_new_folder_parent_id = parent_id # NotesModule still holds this specific state
+        self.nm.pending_new_folder_parent_id = (
+            parent_id  # NotesModule still holds this specific state
+        )
 
         if dpg.does_item_exist(self.new_folder_name_input_tag):
             dpg.set_value(self.new_folder_name_input_tag, "")
@@ -113,11 +131,47 @@ class NotesDialogManager:
             if dpg.does_item_exist(self.new_folder_name_input_tag):
                 dpg.focus_item(self.new_folder_name_input_tag)
         else:
-            self.logger.error("[NotesDialogManager.show_new_folder_dialog] New folder dialog tag does not exist!")
+            self.logger.error(
+                "[NotesDialogManager.show_new_folder_dialog] New folder dialog tag does not exist!"
+            )
             # self.nm._show_error("Cannot open New Folder dialog.") # If NotesModule has a generic error display
 
+    def show_and_center_new_note_dialog(self):
+        """Populates, centers, and shows the 'New Note Dialog'."""
+        # self.logger.info("[NotesDialogManager.show_and_center_new_note_dialog] Preparing to show dialog.")
+
+        # Populate dynamic parts (like dropdown, default values)
+        # This is currently done in NotesModule._create_new_note before calling show.
+        # For better encapsulation, parts of that logic could move here or be passed as args.
+        # For now, we assume _populate_folder_dropdown_for_new_note_dialog is called from NotesModule.
+
+        if dpg.does_item_exist(self.new_note_dialog_tag):
+            dialog_width = 400  # As defined in _define_new_note_dialog
+            dialog_height = 200  # As defined in _define_new_note_dialog
+
+            viewport_width = dpg.get_viewport_width()
+            viewport_height = dpg.get_viewport_height()
+
+            pos_x = (viewport_width - dialog_width) // 2
+            pos_y = (viewport_height - dialog_height) // 2
+
+            # Ensure values are non-negative
+            pos_x = max(0, pos_x)
+            pos_y = max(0, pos_y)
+
+            dpg.configure_item(self.new_note_dialog_tag, pos=[pos_x, pos_y], show=True)
+            # self.logger.info(f"New Note dialog shown at ({pos_x}, {pos_y}).")
+
+            if dpg.does_item_exist(self.new_note_title_input_tag):
+                dpg.focus_item(self.new_note_title_input_tag)  # Focus title input
+        else:
+            self.logger.error(
+                "[NotesDialogManager.show_and_center_new_note_dialog] New note dialog tag does not exist!"
+            )
+
+
 class NotesContextMenuManager:
-    def __init__(self, notes_module: 'NotesModule'):
+    def __init__(self, notes_module: "NotesModule"):
         self.nm = notes_module
         self.core = notes_module.core
         self.logger = notes_module.logger

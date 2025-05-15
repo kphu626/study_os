@@ -23,7 +23,8 @@ class ProgressModule(BaseModule):
             self.data_path = self.core.config.progress_path
         else:
             self.data_path = Path("data/progress.json")
-            print(f"Warning: ProgressModule using default data_path: {self.data_path}")
+            print(
+                f"Warning: ProgressModule using default data_path: {self.data_path}")
         self.data_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.progress_data: Optional[ProgressData] = None
@@ -88,8 +89,10 @@ class ProgressModule(BaseModule):
         """Loads progress data from file and updates the DPG chart."""
         if self.data_path.exists() and self.data_path.stat().st_size > 0:
             try:
-                raw_data = json.loads(self.data_path.read_text(encoding="utf-8"))
-                self.progress_data = ProgressData(**raw_data)  # Parse with Pydantic
+                raw_data = json.loads(
+                    self.data_path.read_text(encoding="utf-8"))
+                self.progress_data = ProgressData(
+                    **raw_data)  # Parse with Pydantic
                 if dpg.does_item_exist(self.dpg_status_text_tag):
                     dpg.set_value(
                         self.dpg_status_text_tag,
@@ -150,14 +153,16 @@ class ProgressModule(BaseModule):
             # For X-axis, let's use simple indices for now for simplicity.
             # Using actual dates on X-axis requires dpg.set_axis_ticks with (label, value) pairs.
             x_data = [float(i) for i in range(len(self.progress_data.history))]
-            y_data = [float(entry.score) for entry in self.progress_data.history]
+            y_data = [float(entry.score)
+                      for entry in self.progress_data.history]
             if dpg.does_item_exist(self.dpg_status_text_tag):
                 dpg.set_value(
                     self.dpg_status_text_tag, f"Plotting {len(y_data)} data points."
                 )
         else:
             if dpg.does_item_exist(self.dpg_status_text_tag):
-                dpg.set_value(self.dpg_status_text_tag, "No progress data to plot.")
+                dpg.set_value(self.dpg_status_text_tag,
+                              "No progress data to plot.")
 
         dpg.set_value(self.dpg_line_series_tag, [x_data, y_data])
 

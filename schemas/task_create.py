@@ -1,7 +1,8 @@
-from pydantic import BaseModel, validator, Field
+import uuid
 from datetime import datetime
 from typing import Optional
-import uuid
+
+from pydantic import BaseModel, Field, validator
 
 
 class TaskCreate(BaseModel):
@@ -16,7 +17,8 @@ class TaskCreate(BaseModel):
             parsed = datetime.fromisoformat(v.strip())
             return v.strip()
         except ValueError:
-            raise ValueError(f"Invalid deadline format: '{v}'. Use YYYY-MM-DD.")
+            raise ValueError(
+                f"Invalid deadline format: '{v}'. Use YYYY-MM-DD.")
 
 
 class TaskResponse(TaskCreate):
