@@ -1,0 +1,197 @@
+[2025-05-15 17:54:30,057] [DEBUG  ] [asyncio                  ] [__init__                 ] Using proactor: IocpProactor
+[2025-05-15 17:54:30,057] [INFO   ] [core.app.StudyOS         ] [__init__                 ] Initializing StudyOS...
+[2025-05-15 17:54:30,070] [INFO   ] [ThemeManager             ] [_load_system_fonts       ] Attempting to load 30 common fonts.
+[2025-05-15 17:54:30,070] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Arial
+[2025-05-15 17:54:30,070] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Arial.ttf
+[2025-05-15 17:54:30,071] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Arial (Path: C:\Windows\Fonts\Arial.ttf, Size: 20pt) -> ID: 23
+[2025-05-15 17:54:30,071] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Arial' with ID: 23 for system fonts.
+[2025-05-15 17:54:30,071] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Arial Black
+[2025-05-15 17:54:30,071] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\ariblk.ttf
+[2025-05-15 17:54:30,072] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Arial Black (Path: C:\Windows\Fonts\ariblk.ttf, Size: 20pt) -> ID: 24
+[2025-05-15 17:54:30,072] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Arial Black' with ID: 24 for system fonts.
+[2025-05-15 17:54:30,072] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Calibri
+[2025-05-15 17:54:30,073] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Calibri.ttf
+[2025-05-15 17:54:30,073] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Calibri (Path: C:\Windows\Fonts\Calibri.ttf, Size: 20pt) -> ID: 25
+[2025-05-15 17:54:30,073] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Calibri' with ID: 25 for system fonts.
+[2025-05-15 17:54:30,073] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Cambria
+[2025-05-15 17:54:30,074] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\cambria.ttc
+[2025-05-15 17:54:30,075] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Cambria (Path: C:\Windows\Fonts\cambria.ttc, Size: 20pt) -> ID: 26
+[2025-05-15 17:54:30,075] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Cambria' with ID: 26 for system fonts.
+[2025-05-15 17:54:30,075] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Candara
+[2025-05-15 17:54:30,075] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Candara.ttf
+[2025-05-15 17:54:30,076] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Candara (Path: C:\Windows\Fonts\Candara.ttf, Size: 20pt) -> ID: 27
+[2025-05-15 17:54:30,076] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Candara' with ID: 27 for system fonts.
+[2025-05-15 17:54:30,076] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Comic Sans MS
+[2025-05-15 17:54:30,076] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\comic.ttf
+[2025-05-15 17:54:30,077] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Comic Sans MS (Path: C:\Windows\Fonts\comic.ttf, Size: 20pt) -> ID: 28
+[2025-05-15 17:54:30,077] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Comic Sans MS' with ID: 28 for system fonts.
+[2025-05-15 17:54:30,077] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Consolas
+[2025-05-15 17:54:30,077] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\consola.ttf
+[2025-05-15 17:54:30,078] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Consolas (Path: C:\Windows\Fonts\consola.ttf, Size: 20pt) -> ID: 29
+[2025-05-15 17:54:30,078] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Consolas' with ID: 29 for system fonts.
+[2025-05-15 17:54:30,078] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Constantia
+[2025-05-15 17:54:30,078] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\constan.ttf
+[2025-05-15 17:54:30,079] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Constantia (Path: C:\Windows\Fonts\constan.ttf, Size: 20pt) -> ID: 30
+[2025-05-15 17:54:30,079] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Constantia' with ID: 30 for system fonts.
+[2025-05-15 17:54:30,079] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Corbel
+[2025-05-15 17:54:30,082] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Corbel.ttf
+[2025-05-15 17:54:30,082] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Corbel (Path: C:\Windows\Fonts\Corbel.ttf, Size: 20pt) -> ID: 31
+[2025-05-15 17:54:30,083] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Corbel' with ID: 31 for system fonts.
+[2025-05-15 17:54:30,083] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Courier New
+[2025-05-15 17:54:30,084] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\cour.ttf
+[2025-05-15 17:54:30,084] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Courier New (Path: C:\Windows\Fonts\cour.ttf, Size: 20pt) -> ID: 32
+[2025-05-15 17:54:30,084] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Courier New' with ID: 32 for system fonts.
+[2025-05-15 17:54:30,084] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Franklin Gothic Medium
+[2025-05-15 17:54:30,085] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\framd.ttf
+[2025-05-15 17:54:30,085] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Franklin Gothic Medium (Path: C:\Windows\Fonts\framd.ttf, Size: 20pt) -> ID: 33
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Franklin Gothic Medium' with ID: 33 for system fonts.
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Gabriola
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Gabriola.ttf
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Gabriola (Path: C:\Windows\Fonts\Gabriola.ttf, Size: 20pt) -> ID: 34
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Gabriola' with ID: 34 for system fonts.
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Gadugi
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Gadugi.ttf
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Gadugi (Path: C:\Windows\Fonts\Gadugi.ttf, Size: 20pt) -> ID: 35
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Gadugi' with ID: 35 for system fonts.
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Georgia
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Georgia.ttf
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Georgia (Path: C:\Windows\Fonts\Georgia.ttf, Size: 20pt) -> ID: 36
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Georgia' with ID: 36 for system fonts.
+[2025-05-15 17:54:30,086] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Impact
+[2025-05-15 17:54:30,086] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Impact.ttf
+[2025-05-15 17:54:30,090] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Impact (Path: C:\Windows\Fonts\Impact.ttf, Size: 20pt) -> ID: 37
+[2025-05-15 17:54:30,090] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Impact' with ID: 37 for system fonts.
+[2025-05-15 17:54:30,090] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Lucida Console
+[2025-05-15 17:54:30,090] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\lucon.ttf
+[2025-05-15 17:54:30,091] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Lucida Console (Path: C:\Windows\Fonts\lucon.ttf, Size: 20pt) -> ID: 38
+[2025-05-15 17:54:30,091] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Lucida Console' with ID: 38 for system fonts.
+[2025-05-15 17:54:30,091] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Lucida Sans Unicode
+[2025-05-15 17:54:30,092] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\l_10646.ttf
+[2025-05-15 17:54:30,092] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Lucida Sans Unicode (Path: C:\Windows\Fonts\l_10646.ttf, Size: 20pt) -> ID: 39
+[2025-05-15 17:54:30,092] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Lucida Sans Unicode' with ID: 39 for system fonts.
+[2025-05-15 17:54:30,093] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Microsoft Sans Serif
+[2025-05-15 17:54:30,094] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\micross.ttf
+[2025-05-15 17:54:30,095] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Microsoft Sans Serif (Path: C:\Windows\Fonts\micross.ttf, Size: 20pt) -> ID: 40
+[2025-05-15 17:54:30,095] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Microsoft Sans Serif' with ID: 40 for system fonts.
+[2025-05-15 17:54:30,095] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Palatino Linotype
+[2025-05-15 17:54:30,096] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\pala.ttf
+[2025-05-15 17:54:30,098] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Palatino Linotype (Path: C:\Windows\Fonts\pala.ttf, Size: 20pt) -> ID: 41
+[2025-05-15 17:54:30,098] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Palatino Linotype' with ID: 41 for system fonts.
+[2025-05-15 17:54:30,098] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Roboto
+[2025-05-15 17:54:30,099] [WARNING] [ThemeManager             ] [_find_font_path          ] Font 'Roboto' (as 'Roboto-Regular.ttf') not found in searched system directories.
+[2025-05-15 17:54:30,099] [WARNING] [ThemeManager             ] [_load_font               ] Font file not found for: Roboto via _find_font_path.
+[2025-05-15 17:54:30,099] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Failed to load font 'Roboto' during system font loading phase.
+[2025-05-15 17:54:30,099] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Segoe UI
+[2025-05-15 17:54:30,099] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\segoeui.ttf
+[2025-05-15 17:54:30,100] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Segoe UI (Path: C:\Windows\Fonts\segoeui.ttf, Size: 20pt) -> ID: 42
+[2025-05-15 17:54:30,100] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Segoe UI' with ID: 42 for system fonts.
+[2025-05-15 17:54:30,100] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Segoe UI Light
+[2025-05-15 17:54:30,100] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\segoeuil.ttf
+[2025-05-15 17:54:30,100] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Segoe UI Light (Path: C:\Windows\Fonts\segoeuil.ttf, Size: 20pt) -> ID: 43
+[2025-05-15 17:54:30,100] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Segoe UI Light' with ID: 43 for system fonts.
+[2025-05-15 17:54:30,100] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Segoe UI Semibold
+[2025-05-15 17:54:30,100] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\seguisb.ttf
+[2025-05-15 17:54:30,102] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Segoe UI Semibold (Path: C:\Windows\Fonts\seguisb.ttf, Size: 20pt) -> ID: 44
+[2025-05-15 17:54:30,102] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Segoe UI Semibold' with ID: 44 for system fonts.
+[2025-05-15 17:54:30,102] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Segoe UI Historic
+[2025-05-15 17:54:30,102] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\seguihis.ttf
+[2025-05-15 17:54:30,103] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Segoe UI Historic (Path: C:\Windows\Fonts\seguihis.ttf, Size: 20pt) -> ID: 45
+[2025-05-15 17:54:30,103] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Segoe UI Historic' with ID: 45 for system fonts.
+[2025-05-15 17:54:30,103] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Sitka Text
+[2025-05-15 17:54:30,103] [WARNING] [ThemeManager             ] [_find_font_path          ] Font 'Sitka Text' (as 'Sitka.ttc') not found in searched system directories.
+[2025-05-15 17:54:30,104] [WARNING] [ThemeManager             ] [_load_font               ] Font file not found for: Sitka Text via _find_font_path.
+[2025-05-15 17:54:30,104] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Failed to load font 'Sitka Text' during system font loading phase.
+[2025-05-15 17:54:30,104] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Sylfaen
+[2025-05-15 17:54:30,104] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Sylfaen.ttf
+[2025-05-15 17:54:30,105] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Sylfaen (Path: C:\Windows\Fonts\Sylfaen.ttf, Size: 20pt) -> ID: 46
+[2025-05-15 17:54:30,105] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Sylfaen' with ID: 46 for system fonts.
+[2025-05-15 17:54:30,105] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Tahoma
+[2025-05-15 17:54:30,105] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Tahoma.ttf
+[2025-05-15 17:54:30,105] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Tahoma (Path: C:\Windows\Fonts\Tahoma.ttf, Size: 20pt) -> ID: 47
+[2025-05-15 17:54:30,106] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Tahoma' with ID: 47 for system fonts.
+[2025-05-15 17:54:30,106] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Times New Roman
+[2025-05-15 17:54:30,106] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\times.ttf
+[2025-05-15 17:54:30,106] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Times New Roman (Path: C:\Windows\Fonts\times.ttf, Size: 20pt) -> ID: 48
+[2025-05-15 17:54:30,107] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Times New Roman' with ID: 48 for system fonts.
+[2025-05-15 17:54:30,107] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Trebuchet MS
+[2025-05-15 17:54:30,107] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font (mapped): C:\Windows\Fonts\trebuc.ttf
+[2025-05-15 17:54:30,108] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Trebuchet MS (Path: C:\Windows\Fonts\trebuc.ttf, Size: 20pt) -> ID: 49
+[2025-05-15 17:54:30,108] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Trebuchet MS' with ID: 49 for system fonts.
+[2025-05-15 17:54:30,108] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Verdana
+[2025-05-15 17:54:30,109] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Verdana.ttf
+[2025-05-15 17:54:30,109] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Verdana (Path: C:\Windows\Fonts\Verdana.ttf, Size: 20pt) -> ID: 50
+[2025-05-15 17:54:30,109] [DEBUG  ] [ThemeManager             ] [_load_system_fonts       ] Successfully queued/loaded font 'Verdana' with ID: 50 for system fonts.
+[2025-05-15 17:54:30,109] [INFO   ] [ThemeManager             ] [_load_system_fonts       ] Finished loading system fonts. Total loaded into _fonts: 28. Available according to available_fonts set: 28
+[2025-05-15 17:54:30,111] [DEBUG  ] [ThemeManager             ] [_find_font_path          ] Searching for font file for: Arial
+[2025-05-15 17:54:30,112] [INFO   ] [ThemeManager             ] [_find_font_path          ] Found system font: C:\Windows\Fonts\Arial.ttf
+[2025-05-15 17:54:30,113] [INFO   ] [ThemeManager             ] [_load_font               ] Successfully loaded font: Arial (Path: C:\Windows\Fonts\Arial.ttf, Size: 20pt) -> ID: 90
+[2025-05-15 17:54:30,114] [INFO   ] [NotesModule              ] [__init__                 ] Initializing NotesModule module (notes_module)...
+[2025-05-15 17:54:30,114] [DEBUG  ] [NotesModule              ] [__init__                 ] NotesModule logger level forced to DEBUG for this session.
+[2025-05-15 17:54:30,116] [DEBUG  ] [NotesModule              ] [_define_editor_window    ] Editor window 'notes_module_editor_window' defined.
+[2025-05-15 17:54:30,116] [INFO   ] [NotesModule              ] [load_data                ] Loading notes from data\notes.json
+[2025-05-15 17:54:30,117] [INFO   ] [NotesModule              ] [load_data                ] Successfully loaded 4 items.
+[2025-05-15 17:54:30,117] [DEBUG  ] [NotesModule              ] [_update_internal_structures] Updating internal structures. Notes count: 4
+[2025-05-15 17:54:30,117] [DEBUG  ] [NotesModule              ] [_populate_available_folders_for_dialog_manager] Populated available folders for DialogManager: 1 items.
+[2025-05-15 17:54:30,117] [DEBUG  ] [NotesModule              ] [refresh_dropdown_items_in_dialogs] Refreshing dropdown items in dialogs if they exist.
+[2025-05-15 17:54:30,117] [DEBUG  ] [NotesModule              ] [_update_internal_structures] Internal structures updated. Index size: 4, Unique tags: 0
+[2025-05-15 17:54:30,118] [INFO   ] [NotesModule              ] [__init__                 ] NotesModule module initialized with 4 notes/folders.
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [build_sidebar_view       ] Building sidebar view for NotesModule in parent: studos_sidebar_group
+[2025-05-15 17:54:30,119] [INFO   ] [NotesModule              ] [_refresh_sidebar_list    ] Refreshing sidebar. Items: 4.
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 682621ef-0c98-48a6-b81d-3c90163b27ce, Title: '1212121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 1212121'
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 7391a042-8dbf-4d42-9488-ee924474fd8c, Title: '2121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 2121'
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59, Title: 'New Note 1', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note 1'
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 4047d164-7b34-4f96-89a3-3de9d9b9f476, Title: 'New Note Title', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note Title'
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [_refresh_sidebar_list    ] Sidebar refresh complete.
+[2025-05-15 17:54:30,119] [DEBUG  ] [NotesModule              ] [build_sidebar_view       ] Sidebar view for NotesModule built.
+[2025-05-15 17:54:30,124] [DEBUG  ] [NotesModule              ] [build_dpg_view           ] Building main DPG view in parent: tab_content_Notes
+[2025-05-15 17:54:32,496] [INFO   ] [core.app.StudyOS         ] [_toggle_sidebar          ] Sidebar hidden.
+[2025-05-15 17:54:32,996] [INFO   ] [core.app.StudyOS         ] [_toggle_sidebar          ] Sidebar shown with width 250.
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_handle_sidebar_item_left_click] Sidebar item left-clicked. Item ID: 7391a042-8dbf-4d42-9488-ee924474fd8c
+[2025-05-15 17:54:34,995] [INFO   ] [NotesModule              ] [_handle_sidebar_item_left_click] Note '2121' selected. Opening in editor.
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_open_editor_for_note    ] Opening editor for note ID: 7391a042-8dbf-4d42-9488-ee924474fd8c
+[2025-05-15 17:54:34,995] [INFO   ] [NotesModule              ] [_open_editor_for_note    ] Editor opened for note: '2121' (ID: 7391a042-8dbf-4d42-9488-ee924474fd8c).
+[2025-05-15 17:54:34,995] [INFO   ] [NotesModule              ] [_refresh_sidebar_list    ] Refreshing sidebar. Items: 4.
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 682621ef-0c98-48a6-b81d-3c90163b27ce, Title: '1212121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 1212121'
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 7391a042-8dbf-4d42-9488-ee924474fd8c, Title: '2121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 2121'
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59, Title: 'New Note 1', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note 1'
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 4047d164-7b34-4f96-89a3-3de9d9b9f476, Title: 'New Note Title', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note Title'
+[2025-05-15 17:54:34,995] [DEBUG  ] [NotesModule              ] [_refresh_sidebar_list    ] Sidebar refresh complete.
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_handle_sidebar_item_left_click] Sidebar item left-clicked. Item ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59
+[2025-05-15 17:54:35,608] [INFO   ] [NotesModule              ] [_handle_sidebar_item_left_click] Note 'New Note 1' selected. Opening in editor.
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_open_editor_for_note    ] Opening editor for note ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59
+[2025-05-15 17:54:35,608] [INFO   ] [NotesModule              ] [_open_editor_for_note    ] Editor opened for note: 'New Note 1' (ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59).
+[2025-05-15 17:54:35,608] [INFO   ] [NotesModule              ] [_refresh_sidebar_list    ] Refreshing sidebar. Items: 4.
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 682621ef-0c98-48a6-b81d-3c90163b27ce, Title: '1212121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 1212121'
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 7391a042-8dbf-4d42-9488-ee924474fd8c, Title: '2121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 2121'
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59, Title: 'New Note 1', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note 1'
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 4047d164-7b34-4f96-89a3-3de9d9b9f476, Title: 'New Note Title', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note Title'
+[2025-05-15 17:54:35,608] [DEBUG  ] [NotesModule              ] [_refresh_sidebar_list    ] Sidebar refresh complete.
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_update_internal_structures] Updating internal structures. Notes count: 4
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_populate_available_folders_for_dialog_manager] Populated available folders for DialogManager: 1 items.
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [refresh_dropdown_items_in_dialogs] Refreshing dropdown items in dialogs if they exist.
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_update_internal_structures] Internal structures updated. Index size: 4, Unique tags: 0
+[2025-05-15 17:54:36,708] [INFO   ] [NotesModule              ] [_save_notes              ] Saving 4 items to data\notes.json
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_save_notes              ] Notes saved successfully.
+[2025-05-15 17:54:36,708] [INFO   ] [NotesModule              ] [_refresh_sidebar_list    ] Refreshing sidebar. Items: 4.
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 682621ef-0c98-48a6-b81d-3c90163b27ce, Title: '1212121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 1212121'
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 7391a042-8dbf-4d42-9488-ee924474fd8c, Title: '2121', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] 2121'
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 9179a1f3-b6fc-49b0-a968-aa33537e6a59, Title: 'New Note 1', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note 1'
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Processing item ID: 4047d164-7b34-4f96-89a3-3de9d9b9f476, Title: 'New Note Title', Icon: '[N]', IsFolder: False
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_build_sidebar_tree_recursive] _build_sidebar_tree_recursive: Generated label: '[N] New Note Title'
+[2025-05-15 17:54:36,708] [DEBUG  ] [NotesModule              ] [_refresh_sidebar_list    ] Sidebar refresh complete.
+[2025-05-15 17:54:36,708] [INFO   ] [NotesModule              ] [_save_note_from_editor   ] Note '9179a1f3-b6fc-49b0-a968-aa33537e6a59' updated successfully.

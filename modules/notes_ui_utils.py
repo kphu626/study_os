@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 import dearpygui.dearpygui as dpg
 
 if TYPE_CHECKING:
+    from schemas.note_schemas import Note  # Added this import
+
     from .notes_module import NotesModule  # Forward reference for type hinting
 
     # from core.app import Core # If Core access is needed directly
@@ -55,7 +57,7 @@ class NotesDialogManager:
             try:
                 dialog_width = dpg.get_item_configuration(dialog_tag)["width"]
                 dialog_height = dpg.get_item_configuration(dialog_tag)["height"]
-            except:  # Fallback if width/height not directly set or accessible this way
+            except Exception:  # Changed from bare except
                 rect_size = dpg.get_item_rect_size(dialog_tag)
                 dialog_width = rect_size[0]
                 dialog_height = rect_size[1]
@@ -112,12 +114,13 @@ class NotesDialogManager:
                     dpg.add_button(
                         label="Cancel",
                         callback=lambda: dpg.configure_item(
-                            self.new_item_dialog_tag, show=False
+                            self.new_item_dialog_tag,
+                            show=False,
                         ),
                         width=-1,
                     )
 
-    def show_new_item_dialog(self, is_folder: bool, parent_id_override: Optional[str]):
+    def show_new_item_dialog(self, is_folder: bool, parent_id_to_select: Optional[str]):
         self.creating_folder = is_folder
         dialog_label = "Create New Folder" if is_folder else "Create New Note"
         default_title = "New Folder" if is_folder else "New Note"
@@ -135,9 +138,9 @@ class NotesDialogManager:
 
         # Attempt to set default parent in dropdown
         selected_dropdown_label = None
-        if parent_id_override:
+        if parent_id_to_select:
             for label, item_id_val in self.available_folders_for_dropdown:
-                if item_id_val == parent_id_override:
+                if item_id_val == parent_id_to_select:
                     selected_dropdown_label = label
                     break
         if (
@@ -157,7 +160,7 @@ class NotesDialogManager:
         dpg.configure_item(self.new_item_dialog_tag, show=True)
         dpg.focus_item(self.new_item_title_input_tag)
         self.logger.debug(
-            f"Showing '{dialog_label}' dialog. Pre-selected parent: {selected_dropdown_label}"
+            f"Showing '{dialog_label}' dialog. Pre-selected parent: {selected_dropdown_label}",
         )
 
     def _execute_create_item_dialog_callback(self, sender, app_data, user_data):
@@ -168,7 +171,9 @@ class NotesDialogManager:
         if not title:
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Title cannot be empty.", duration=3, level="warning"
+                    "Title cannot be empty.",
+                    duration=3,
+                    level="warning",
                 )
             dpg.focus_item(self.new_item_title_input_tag)
             return
@@ -181,7 +186,10 @@ class NotesDialogManager:
 
         dpg.configure_item(self.new_item_dialog_tag, show=False)
         self.notes_module.execute_create_new_item(
-            title, icon, chosen_parent_id, self.creating_folder
+            title,
+            icon,
+            chosen_parent_id,
+            self.creating_folder,
         )
 
     def _define_rename_item_dialog(self):
@@ -216,7 +224,8 @@ class NotesDialogManager:
                     dpg.add_button(
                         label="Cancel",
                         callback=lambda: dpg.configure_item(
-                            self.rename_item_dialog_tag, show=False
+                            self.rename_item_dialog_tag,
+                            show=False,
                         ),
                         width=-1,
                     )
@@ -225,25 +234,30 @@ class NotesDialogManager:
         self.rename_item_id_storage = item.id
         dpg.set_value(self.rename_item_title_input_tag, item.title)
         dpg.set_value(
-            self.rename_item_icon_input_tag, item.icon if item.icon else ""
+            self.rename_item_icon_input_tag,
+            item.icon if item.icon else "",
         )  # Show current icon or empty
 
         self._center_dialog(self.rename_item_dialog_tag)
         dpg.configure_item(
-            self.rename_item_dialog_tag, show=True, label=f"Rename: {item.title[:30]}"
+            self.rename_item_dialog_tag,
+            show=True,
+            label=f"Rename: {item.title[:30]}",
         )
         dpg.focus_item(self.rename_item_title_input_tag)
 
     def _execute_rename_item_dialog_callback(self, sender, app_data, user_data):
         new_title = dpg.get_value(self.rename_item_title_input_tag).strip()
         new_icon = dpg.get_value(
-            self.rename_item_icon_input_tag
+            self.rename_item_icon_input_tag,
         ).strip()  # Empty string if user clears it
 
         if not new_title:
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Title cannot be empty.", duration=3, level="warning"
+                    "Title cannot be empty.",
+                    duration=3,
+                    level="warning",
                 )
             dpg.focus_item(self.rename_item_title_input_tag)
             return
@@ -251,13 +265,16 @@ class NotesDialogManager:
         if self.rename_item_id_storage:
             dpg.configure_item(self.rename_item_dialog_tag, show=False)
             self.notes_module.execute_rename_item(
-                self.rename_item_id_storage, new_title, new_icon
+                self.rename_item_id_storage,
+                new_title,
+                new_icon,
             )
         else:
             self.logger.error("Item ID for rename was not stored.")
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Error: No item selected for rename.", level="error"
+                    "Error: No item selected for rename.",
+                    level="error",
                 )
         self.rename_item_id_storage = None  # Clear stored ID
 
@@ -284,7 +301,8 @@ class NotesDialogManager:
                     dpg.add_button(
                         label="No, Cancel",
                         callback=lambda: dpg.configure_item(
-                            self.delete_confirm_dialog_tag, show=False
+                            self.delete_confirm_dialog_tag,
+                            show=False,
                         ),
                         width=-1,
                     )
@@ -314,7 +332,8 @@ class NotesDialogManager:
             self.logger.error("Item ID for delete confirmation was not stored.")
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Error: No item ID for deletion.", level="error"
+                    "Error: No item ID for deletion.",
+                    level="error",
                 )
         self.delete_confirm_item_id_storage = None
 
@@ -325,13 +344,14 @@ class NotesDialogManager:
             current_value = None
             try:  # Get current value if combo exists and has a value
                 current_value = dpg.get_value(self.new_item_parent_dropdown_tag)
-            except:
+            except Exception:  # Changed from bare except
                 pass  # Ignore if it fails (e.g. no items yet)
 
             dpg.configure_item(self.new_item_parent_dropdown_tag, items=dropdown_labels)
             if current_value and current_value in dropdown_labels:
                 dpg.set_value(
-                    self.new_item_parent_dropdown_tag, current_value
+                    self.new_item_parent_dropdown_tag,
+                    current_value,
                 )  # Try to preserve selection
             elif dropdown_labels:  # Default to first item (Root)
                 dpg.set_value(self.new_item_parent_dropdown_tag, dropdown_labels[0])

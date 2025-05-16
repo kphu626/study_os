@@ -289,7 +289,8 @@ class ThemeManager:
     def _load_system_fonts(self):
         """Load a predefined list of common system fonts with availability tracking."""
         if not self.font_registry:
-            self.logger.error("Font registry not initialized in _load_system_fonts!")
+            self.logger.error(
+                "Font registry not initialized in _load_system_fonts!")
             return
 
         self.unavailable_fonts.clear()
@@ -370,7 +371,8 @@ class ThemeManager:
         """Embed a basic font as last resort"""
         try:
             if self.font_registry is None:
-                raise RuntimeError("Cannot load fallback font - registry missing")
+                raise RuntimeError(
+                    "Cannot load fallback font - registry missing")
 
             # Instead of trying to load a file that doesn't exist, just use DPG's default
             self._fonts["Default"] = 0  # Use built-in default font
@@ -382,7 +384,8 @@ class ThemeManager:
     def _load_font(self, font_name: str) -> Optional[int]:
         """Loads a single font file with the current self.font_size and adds it to the registry."""
         if not self.font_registry:
-            self.logger.error("Font registry not initialized during _load_font!")
+            self.logger.error(
+                "Font registry not initialized during _load_font!")
             return None
 
         try:
@@ -398,7 +401,8 @@ class ThemeManager:
 
             font_path = Path(font_path_str)
             if not font_path.exists():
-                self.logger.warning(f"Font file path does not exist: {font_path}")
+                self.logger.warning(
+                    f"Font file path does not exist: {font_path}")
                 self.unavailable_fonts.add(font_name)
                 return None
 
@@ -470,7 +474,7 @@ class ThemeManager:
 
         # Proceed if _requires_initialization is False
         print(
-            f"[ThemeManager.set_font] Proceeding with DPG operations as requires_initialization is False."
+            "[ThemeManager.set_font] Proceeding with DPG operations as requires_initialization is False."
         )
 
         # Always attempt to load/reload the font with the current size.
@@ -536,7 +540,7 @@ class ThemeManager:
             return
 
         print(
-            f"[ThemeManager.set_font_size] Proceeding with DPG operations as requires_initialization is False."
+            "[ThemeManager.set_font_size] Proceeding with DPG operations as requires_initialization is False."
         )
 
         print(
@@ -759,7 +763,8 @@ class ThemeManager:
                     # Try exact name first
                     potential_path = font_dir / f"{font_name}{ext}"
                     if potential_path.exists():
-                        self.logger.info(f"Found system font: {potential_path}")
+                        self.logger.info(
+                            f"Found system font: {potential_path}")
                         return str(potential_path)
 
                     # Try target_filename (mapped from common names)

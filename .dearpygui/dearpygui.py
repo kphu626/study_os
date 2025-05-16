@@ -14,15 +14,12 @@
 ##########################################################
 
 from typing import Union
-from typing import List, Any, Callable, Union, Tuple
+from typing import List, Any, Callable, Tuple
 from contextlib import contextmanager
 import warnings
 import functools
 import inspect
 import dearpygui._dearpygui as internal_dpg
-from dearpygui._dearpygui import mvBuffer
-from dearpygui._dearpygui import mvVec4
-from dearpygui._dearpygui import mvMat4
 
 ########################################################################################################################
 # User API Index

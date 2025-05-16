@@ -1,10 +1,11 @@
+from typing import TYPE_CHECKING, Union
+
 import dearpygui.dearpygui as dpg
-from typing import TYPE_CHECKING, Union, Optional, cast
 
 from .base_module import BaseModule
+from .flashcards_module import FlashcardModule
 from .notes_module import NotesModule
 from .tasks_module import TaskModule
-from .flashcards_module import FlashcardModule
 
 # from core import Core # Removed old import
 
@@ -14,7 +15,6 @@ if TYPE_CHECKING:  # Added TYPE_CHECKING block
     # from .notes_module import NotesModule # Moved out
     # from .tasks_module import TaskModule # Moved out
     # from .flashcards_module import FlashcardModule # Moved out
-    from ..schemas.task_create import TaskResponse  # Corrected: path and file name
 
 
 class StatisticsModule(BaseModule):
@@ -39,7 +39,9 @@ class StatisticsModule(BaseModule):
             dpg.add_separator()
 
             dpg.add_button(
-                label="Refresh Statistics", callback=self.load_data, width=-1
+                label="Refresh Statistics",
+                callback=self.load_data,
+                width=-1,
             )
             dpg.add_separator()
 
@@ -53,12 +55,16 @@ class StatisticsModule(BaseModule):
 
             dpg.add_spacer(height=10)
             dpg.add_text("Flashcards:", color=(180, 180, 180))
-            dpg.add_text("Total Flashcards: ", tag=self.dpg_flashcards_count_tag)
+            dpg.add_text("Total Flashcards: ",
+                         tag=self.dpg_flashcards_count_tag)
 
         self.load_data()  # Initial load of stats
 
     def load_data(
-        self, sender=None, app_data=None, user_data=None
+        self,
+        sender=None,
+        app_data=None,
+        user_data=None,
     ):  # Added DPG callback signature
         """Loads and displays statistics from other modules."""
         # print(f"[{self.__class__.__name__}] load_data called.")
@@ -69,7 +75,7 @@ class StatisticsModule(BaseModule):
         flashcards_count = 0
 
         notes_module_instance = self.core.module_registry.get(
-            "Notes"
+            "Notes",
         )  # Reverted to original key "Notes"
         if isinstance(notes_module_instance, NotesModule):
             # Now type checkers know notes_module_instance is NotesModule
@@ -78,7 +84,7 @@ class StatisticsModule(BaseModule):
         # self.core.logger.warning("NotesModule not found or not of type NotesModule in registry.")
 
         tasks_module_instance = self.core.module_registry.get(
-            "Tasks"
+            "Tasks",
         )  # Reverted to original key "Tasks"
         if isinstance(tasks_module_instance, TaskModule):  # Corrected: TaskModule
             # Now type checkers know tasks_module_instance is TasksModule
@@ -91,10 +97,11 @@ class StatisticsModule(BaseModule):
         # self.core.logger.warning("TasksModule not found or not of type TasksModule in registry.")
 
         flashcards_module_instance = self.core.module_registry.get(
-            "Flashcards"
+            "Flashcards",
         )  # Reverted to original key "Flashcards"
         if isinstance(
-            flashcards_module_instance, FlashcardModule
+            flashcards_module_instance,
+            FlashcardModule,
         ):  # Corrected: FlashcardModule
             # Now type checkers know flashcards_module_instance is FlashcardsModule
             flashcards_count = len(flashcards_module_instance.cards)
@@ -104,12 +111,15 @@ class StatisticsModule(BaseModule):
         # Update DPG text items if they exist
         if dpg.is_dearpygui_running():  # Ensure DPG is active
             if dpg.does_item_exist(self.dpg_notes_count_tag):
-                dpg.set_value(self.dpg_notes_count_tag, f"Total Notes: {notes_count}")
+                dpg.set_value(self.dpg_notes_count_tag,
+                              f"Total Notes: {notes_count}")
             if dpg.does_item_exist(self.dpg_tasks_total_tag):
-                dpg.set_value(self.dpg_tasks_total_tag, f"Total Tasks: {tasks_total}")
+                dpg.set_value(self.dpg_tasks_total_tag,
+                              f"Total Tasks: {tasks_total}")
             if dpg.does_item_exist(self.dpg_tasks_completed_tag):
                 dpg.set_value(
-                    self.dpg_tasks_completed_tag, f"Completed Tasks: {tasks_completed}"
+                    self.dpg_tasks_completed_tag,
+                    f"Completed Tasks: {tasks_completed}",
                 )
             if dpg.does_item_exist(self.dpg_flashcards_count_tag):
                 dpg.set_value(

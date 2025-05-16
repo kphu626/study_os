@@ -1,19 +1,18 @@
 # core/codebase_guardian.py
-import os
-import ast
-import time
 import asyncio
-import aiofiles
-from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from typing import Dict
 import re
-import black
+import time
+from pathlib import Path
+from typing import Dict
+
+import aiofiles
 import autopep8
-from libcst import parse_module, MetadataWrapper
+import black
+import libcst as cst
+from libcst import MetadataWrapper, parse_module
 from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
-from libcst.metadata import PositionProvider
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 
 class UnifiedGuardian:
@@ -63,7 +62,8 @@ class UnifiedGuardian:
             self.show_notification(f"Processed {path.name}")
 
         except Exception as exc:
-            self.show_notification(f"Error in {path.name}: {str(exc)}", error=True)
+            self.show_notification(
+                f"Error in {path.name}: {exc!s}", error=True)
 
     def show_notification(self, message: str, error: bool = False):
         color = "\033[91m" if error else "\033[92m"
@@ -86,7 +86,7 @@ class QuantumDocumenter:
 
     async def generate(self, path: Path):
         async with aiofiles.open(path) as f:
-            code = await f.read()
+            await f.read()
         # Generate documentation logic
         self.guardian.show_notification(f"📚 Updated docs for {path.name}")
 
@@ -115,7 +115,7 @@ class CodebaseDoctor:
             return True
 
         except Exception as exc:
-            print(f"🔴 Critical error in {path.name}: {str(exc)}")
+            print(f"🔴 Critical error in {path.name}: {exc!s}")
             return False
 
     def _fix_syntax(self, code: str) -> str:
@@ -135,13 +135,9 @@ class CodebaseDoctor:
                     len(parts) > 1
                     and parts[0] == "except"
                     and not parts[-1].endswith(":")
-                ):
+                ) or (len(parts) == 1 and parts[0] == "except"):
                     corrected_line = corrected_line + ":"
-                elif len(parts) == 1 and parts[0] == "except":
-                    corrected_line = corrected_line + ":"
-            elif stripped_line == "finally" and not stripped_line.endswith(":"):
-                corrected_line = corrected_line + ":"
-            elif (
+            elif (stripped_line == "finally" and not stripped_line.endswith(":")) or (
                 stripped_line.startswith("def ")
                 and stripped_line.endswith(")")
                 and not stripped_line.endswith(":")
@@ -169,51 +165,61 @@ class CodebaseDoctor:
         context = CodemodContext()
 
         # Fix logger.warn → logger.warning
-        tree = LoggerFixCommand(context).transform_module(wrapper.module)
+        fixed_tree = LoggerFixCommand(context).transform_module(wrapper.module)
 
         # Add missing self to methods
-        tree = SelfAdderCommand(context).transform_module(wrapper.module)
+        # Apply SelfAdderCommand to the already transformed tree
+        final_tree = SelfAdderCommand(context).transform_module(fixed_tree)
 
-        return tree.code
+        return final_tree.code
 
     def _black_format(self, code: str) -> str:
         """Format with Black's strict mode"""
         return black.format_str(
-            code, mode=black.FileMode(line_length=88, string_normalization=True)
+            code,
+            mode=black.FileMode(line_length=88, string_normalization=True),
         )
-
-    def _fix_def_colon(self, node):
-        # Colon correction logic
-        pass
-
-    def _fix_class_colon(self, node):
-        # Colon correction logic
-        pass
 
 
 class LoggerFixCommand(VisitorBasedCodemodCommand):
-    def visit_Call(self, node):
-        # Fix module detection
-        if (
-            isinstance(node.func, ast.Attribute)
-            and node.func.attr == "warn"
-            and isinstance(node.func.value, ast.Name)
-            and node.func.value.id == "logger"
-        ):
-            return node.with_changes(func=node.func.with_changes(attr="warning"))
+    def visit_Call(self, node: cst.Call) -> cst.CSTNode | None:
+        # Ensure node.func is an Attribute node
+        if not isinstance(node.func, cst.Attribute):
+            return super().visit_Call(node)
+
+        # Check if the attribute's value is a Name node (e.g., 'logger')
+        if not isinstance(node.func.value, cst.Name):
+            return super().visit_Call(node)
+
+        # Check if the attribute name is 'warn' and the object is 'logger'
+        if node.func.attr.value == "warn" and node.func.value.value == "logger":
+            # Replace 'warn' with 'warning'
+            new_attr = node.func.attr.with_changes(value="warning")
+            new_func = node.func.with_changes(attr=new_attr)
+            return node.with_changes(func=new_func)
+
+        return super().visit_Call(node)
 
 
 class SelfAdderCommand(VisitorBasedCodemodCommand):
-    def visit_FunctionDef(self, node):
-        # Use LibCST's parameter API properly
-        if node.params:
-            # Access underlying parameters collection
-            params = list(node.params.params)
-            if params and params[0].name.value != "self":
-                new_params = [params[0].with_changes(name="self")] + params[1:]
-                return node.with_changes(params=new_params)
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> cst.CSTNode | None:
+        # Check if it's a method (heuristic: in a class, not static/class method without 'cls')
+        # This heuristic can be improved by checking parent context (e.g. if parent is ClassDef)
+        # For now, we assume it applies to functions that look like methods.
 
-    def _add_self_arg(self, parameters):
-        if not parameters:
-            return parameters
-        # Existing logic with proper parameter handling
+        # No parameters, or first parameter is already 'self' or 'cls'
+        if not node.params.params or node.params.params[0].name.value in (
+            "self",
+            "cls",
+        ):
+            return super().visit_FunctionDef(node)
+
+        # Create a 'self' parameter
+        self_param = cst.Param(name=cst.Name("self"))
+
+        # Prepend 'self' to existing parameters
+        new_params_tuple = (self_param,) + node.params.params
+
+        new_params_node = node.params.with_changes(params=new_params_tuple)
+
+        return node.with_changes(params=new_params_node)

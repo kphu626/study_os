@@ -1,13 +1,12 @@
 import asyncio
-
-# from flet import Icons # DPG doesn't use Flet Icons directly
+import logging
 import threading
 import traceback
-from sys import modules as system_modules  # Renamed to avoid conflict
-from typing import Callable, Dict, Optional, Type, Union  # Added Callable and Union
+from typing import Dict, Optional, Union  # Added Callable and Union
 
 import dearpygui.dearpygui as dpg  # Changed from flet
 
+# from flet import Icons # DPG doesn't use Flet Icons directly
 # from core.theme_manager import ThemeManager # Removed as the file is deleted
 from core.codebase_guardian import UnifiedGuardian
 from core.command_bar import CommandBar  # Import CommandBar
@@ -24,6 +23,16 @@ from modules import (
     StatisticsModule,
     TaskModule,
 )
+
+# --- Logger Setup --- (assuming this is the main app logger)
+# This is a bit unusual to have here directly, usually it's in main.py or a dedicated config
+# However, if this is the intended global logger config, we can use it.
+# For now, let's assume a logger is obtained in __init__
+# logger = logging.getLogger(__name__) # Example of getting a logger
+
+
+# Define logger at module level for StudyOS
+logger = logging.getLogger(__name__)
 
 
 class Core:
@@ -79,6 +88,10 @@ class StudyOS:
     TOP_CONTROLS_GROUP_TAG = "top_controls_group"
 
     def __init__(self):
+        self.logger = logging.getLogger(
+            f"{__name__}.{self.__class__.__name__}",
+        )  # Add logger to StudyOS
+        self.logger.info("Initializing StudyOS...")
         print("[StudyOS.__init__] Initializing StudyOS...")
         self.core = Core(self)
         self.current_module_key = None
@@ -99,16 +112,18 @@ class StudyOS:
 
     def _setup_dpg_viewport_and_window(self):
         print(
-            "[StudyOS._setup_dpg_viewport_and_window] Setting up viewport..."
+            "[StudyOS._setup_dpg_viewport_and_window] Setting up viewport...",
         )  # ADD LOG
         # Start maximized, but provide a sensible default width/height
         # if the window is restored or if maximized isn't supported/desired.
         # dpg.create_viewport(title="NeuroStudy OS", width=1280, height=800, maximized=True)
         dpg.create_viewport(
-            title="NeuroStudy OS", width=1280, height=800
+            title="NeuroStudy OS",
+            width=1280,
+            height=800,
         )  # Temporarily remove maximized=True
         print(
-            "[StudyOS._setup_dpg_viewport_and_window] Viewport setup complete."
+            "[StudyOS._setup_dpg_viewport_and_window] Viewport setup complete.",
         )  # ADD LOG
 
         # The primary window will now be setup in _init_dpg_ui_layout for better structure
@@ -118,7 +133,7 @@ class StudyOS:
 
     def _init_modules_and_registry(self):
         print(
-            "[StudyOS._init_modules_and_registry] Initializing modules and registry..."
+            "[StudyOS._init_modules_and_registry] Initializing modules and registry...",
         )  # ADD LOG
         """Instantiate modules and register them with the core registry."""
         notes_module = NotesModule(self.core)
@@ -140,7 +155,7 @@ class StudyOS:
         for name, instance in self.registered_module_instances.items():
             self.core.module_registry.register(name, instance)
         print(
-            "[StudyOS._init_modules_and_registry] Modules and registry initialized."
+            "[StudyOS._init_modules_and_registry] Modules and registry initialized.",
         )  # ADD LOG
 
     def _init_dpg_ui_layout(self):
@@ -167,29 +182,41 @@ class StudyOS:
                 with dpg.group(horizontal=True):  # Main horizontal layout
                     # --- Sidebar (Left) ---
                     with dpg.group(tag=self.SIDEBAR_TAG, width=self.sidebar_width):
-                        dpg.add_text("Sidebar")
-                        dpg.add_separator()
+                        dpg.add_button(
+                            label="<",  # Initial label for "visible" state
+                            tag=self.SIDEBAR_TOGGLE_BTN_TAG,
+                            callback=self._toggle_sidebar,
+                            width=-1,  # Span the width of the sidebar
+                            height=30,
+                        )
+                        with dpg.tooltip(
+                            self.SIDEBAR_TOGGLE_BTN_TAG
+                        ):  # Move tooltip too
+                            dpg.add_text("Toggle Sidebar Visibility")
+
+                        # dpg.add_separator() # Removed original separator, button is now first
 
                         # --- Populate Sidebar with Note Tree --- START
-                        notes_module_instance = self.core.module_registry.get("Notes")
+                        notes_module_instance = self.core.module_registry.get(
+                            "Notes")
                         if (
                             notes_module_instance
                             and hasattr(notes_module_instance, "build_sidebar_view")
                             and callable(notes_module_instance.build_sidebar_view)
                         ):
                             print(
-                                "[StudyOS._init_dpg_ui_layout] Calling NotesModule.build_sidebar_view..."
+                                "[StudyOS._init_dpg_ui_layout] Calling NotesModule.build_sidebar_view...",
                             )
                             try:
                                 notes_module_instance.build_sidebar_view(
-                                    self.SIDEBAR_TAG
+                                    self.SIDEBAR_TAG,
                                 )
                             except SystemError as se:
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] CRITICAL SystemError during NotesModule.build_sidebar_view: {se}"
+                                    f"[StudyOS._init_dpg_ui_layout] CRITICAL SystemError during NotesModule.build_sidebar_view: {se}",
                                 )
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] Traceback: {traceback.format_exc()}"
+                                    f"[StudyOS._init_dpg_ui_layout] Traceback: {traceback.format_exc()}",
                                 )
                                 if dpg.does_item_exist(self.SIDEBAR_TAG):
                                     dpg.add_text(
@@ -199,10 +226,10 @@ class StudyOS:
                                     )
                             except Exception as e:
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] EXCEPTION during NotesModule.build_sidebar_view: {e}"
+                                    f"[StudyOS._init_dpg_ui_layout] EXCEPTION during NotesModule.build_sidebar_view: {e}",
                                 )
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] Traceback: {traceback.format_exc()}"
+                                    f"[StudyOS._init_dpg_ui_layout] Traceback: {traceback.format_exc()}",
                                 )
                                 if dpg.does_item_exist(self.SIDEBAR_TAG):
                                     dpg.add_text(
@@ -212,10 +239,10 @@ class StudyOS:
                                     )
                         else:
                             print(
-                                "[StudyOS._init_dpg_ui_layout] Notes module or build_sidebar_view not found."
+                                "[StudyOS._init_dpg_ui_layout] Notes module or build_sidebar_view not found.",
                             )
                             if dpg.does_item_exist(
-                                self.SIDEBAR_TAG
+                                self.SIDEBAR_TAG,
                             ):  # Ensure parent exists before adding text
                                 dpg.add_text(
                                     "Notes tree failed to load.",
@@ -227,40 +254,45 @@ class StudyOS:
 
                     # --- Main Content Area (Right) ---
                     with dpg.group(tag=self.MAIN_CONTENT_GROUP_TAG, width=-1):
+                        # dpg.add_theme_color(dpg.mvThemeCol_ChildBg, (50, 50, 0, 100), parent=self.MAIN_CONTENT_GROUP_TAG) # REVERTED
+
                         # Top controls group (toggle button and command bar)
                         with dpg.group(
-                            horizontal=True, tag=self.TOP_CONTROLS_GROUP_TAG, width=-1
+                            horizontal=True,
+                            tag=self.TOP_CONTROLS_GROUP_TAG,
+                            width=-1,
                         ):
-                            # MOVE TOGGLE BUTTON BACK HERE
-                            dpg.add_button(
-                                label="«",
-                                tag=self.SIDEBAR_TOGGLE_BTN_TAG,
-                                callback=self._toggle_sidebar,
-                                width=30,
-                                height=30,
-                            )
-                            with dpg.tooltip(self.SIDEBAR_TOGGLE_BTN_TAG):
-                                dpg.add_text("Toggle Sidebar Visibility")
+                            # dpg.add_button(
+                            #     label="<",
+                            #     tag=self.SIDEBAR_TOGGLE_BTN_TAG,
+                            #     callback=self._toggle_sidebar,
+                            #     width=30,
+                            #     height=30,
+                            # )
+                            # with dpg.tooltip(self.SIDEBAR_TOGGLE_BTN_TAG):
+                            # dpg.add_text("Toggle Sidebar Visibility")
 
-                            # Create Command Bar view
+                            # dpg.add_spacer(width=10) # REMOVE
+                            # dpg.add_text("DEBUG_TEXT_A", color=(255, 0, 0)) # REMOVE
+                            # print(f"[DEBUG] TOP_CONTROLS_GROUP_TAG exists: {dpg.does_item_exist(self.TOP_CONTROLS_GROUP_TAG)}") # Can keep or remove print
+
+                            # Restore Command Bar build logic if it was commented out for this group
                             if self.command_bar:
-                                # Initialize command bar tags first
                                 if hasattr(self.command_bar, "_initialize_dpg_tags"):
+                                    # This might be an issue if called multiple times
                                     self.command_bar._initialize_dpg_tags()
-
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] Building Command Bar view..."
+                                    "[StudyOS._init_dpg_ui_layout] Building Command Bar view (original location - will be empty for now)...",
                                 )
-                                # Build the command bar UI
-                                self.command_bar.build_dpg_view(
-                                    parent_tag=self.TOP_CONTROLS_GROUP_TAG
-                                )
+                                # self.command_bar.build_dpg_view( # Call will be moved
+                                #     parent_tag=self.TOP_CONTROLS_GROUP_TAG
+                                # )
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] Command Bar view built."
+                                    "[StudyOS._init_dpg_ui_layout] Command Bar build call skipped from original location.",
                                 )
                             else:
                                 print(
-                                    f"[StudyOS._init_dpg_ui_layout] Command bar not available"
+                                    "[StudyOS._init_dpg_ui_layout] Command bar not available",
                                 )
 
                         # Add separator between top controls and tab bar
@@ -269,7 +301,7 @@ class StudyOS:
 
                         # Create the main tab bar for modules
                         self.main_tabbar_id = dpg.add_tab_bar(
-                            callback=self._on_tab_selected
+                            callback=self._on_tab_selected,
                         )
 
                         # Create tabs for each module
@@ -279,10 +311,11 @@ class StudyOS:
                         ) in self.registered_module_instances.items():
                             # Create a tab for this module
                             tab_id = dpg.add_tab(
-                                label=module_key, parent=self.main_tabbar_id
+                                label=module_key,
+                                parent=self.main_tabbar_id,
                             )
                             print(
-                                f"[StudyOS._init_dpg_ui_layout] Created tab with ID {tab_id} for module '{module_key}'"
+                                f"[StudyOS._init_dpg_ui_layout] Created tab with ID {tab_id} for module '{module_key}'",
                             )
 
                             # Store the mapping of tab ID to module key
@@ -300,28 +333,33 @@ class StudyOS:
             # Set primary window
             dpg.set_primary_window(self.PRIMARY_WINDOW_TAG, True)
             print(
-                f"[StudyOS._init_dpg_ui_layout] DPG UI layout initialized with tabs and sidebar."
+                "[StudyOS._init_dpg_ui_layout] DPG UI layout initialized with tabs and sidebar.",
             )
 
             # Add a Main Menu Bar
             with dpg.menu_bar(parent=self.PRIMARY_WINDOW_TAG):
                 with dpg.menu(label="File"):
-                    dpg.add_menu_item(label="New Note", callback=self._menu_new_note)
+                    dpg.add_menu_item(label="New Note",
+                                      callback=self._menu_new_note)
                     dpg.add_menu_item(
-                        label="Save All Notes", callback=self._menu_save_all_notes
+                        label="Save All Notes",
+                        callback=self._menu_save_all_notes,
                     )
                     dpg.add_separator()
                     dpg.add_menu_item(
-                        label="Exit", callback=lambda: dpg.stop_dearpygui()
+                        label="Exit",
+                        callback=lambda: dpg.stop_dearpygui(),
                     )
 
                 with dpg.menu(label="Settings"):
                     dpg.add_menu_item(
-                        label="App Settings", callback=self._menu_open_settings
+                        label="App Settings",
+                        callback=self._menu_open_settings,
                     )
 
                 with dpg.menu(label="Help"):
-                    dpg.add_menu_item(label="About StudyOS", callback=self._menu_about)
+                    dpg.add_menu_item(label="About StudyOS",
+                                      callback=self._menu_about)
 
             # Define the "About" window (modal, initially hidden)
             # Ensure this tag is unique and managed if multiple modals are added later
@@ -347,43 +385,57 @@ class StudyOS:
                             label="OK",
                             width=-1,
                             callback=lambda: dpg.configure_item(
-                                about_window_tag, show=False
+                                about_window_tag,
+                                show=False,
                             ),
                         )
 
         except Exception as e:
             print(
-                f"[StudyOS._init_dpg_ui_layout] Error initializing DPG UI layout: {e}"
+                f"[StudyOS._init_dpg_ui_layout] Error initializing DPG UI layout: {e}",
             )
             traceback.print_exc()
 
     def _toggle_sidebar(self, sender, app_data, user_data):
         """Toggles the visibility of the sidebar group."""
-        SIDEBAR_TAG = (
-            "studos_sidebar_group"  # Define locally or access via self if stored
-        )
-        SIDEBAR_TOGGLE_BTN_TAG = (
-            "sidebar_toggle_button"  # Define locally or access via self
-        )
+        # Use class attributes for tags
+        current_sidebar_tag = self.SIDEBAR_TAG
+        toggle_button_tag = self.SIDEBAR_TOGGLE_BTN_TAG
 
-        is_visible = dpg.is_item_shown(SIDEBAR_TAG)
+        if not dpg.does_item_exist(current_sidebar_tag):
+            self.logger.error(
+                f"Sidebar tag '{current_sidebar_tag}' does not exist during toggle.",
+            )
+            return
+        # It's okay if the button doesn't exist for some reason, just log it if we try to use it.
+
+        is_visible = dpg.is_item_shown(current_sidebar_tag)
 
         if is_visible:
-            dpg.hide_item(SIDEBAR_TAG)
-            # Update the toggle button label (the one outside the sidebar)
-            # Change to 'show' symbol
-            dpg.set_item_label(SIDEBAR_TOGGLE_BTN_TAG, "»")
-            print("[StudyOS._toggle_sidebar] Sidebar hidden.")
+            dpg.hide_item(current_sidebar_tag)
+            if dpg.does_item_exist(toggle_button_tag):
+                dpg.set_item_label(toggle_button_tag, ">")
+            else:
+                self.logger.warning(
+                    f"Sidebar toggle button '{toggle_button_tag}' not found when trying to set label.",
+                )
+            self.logger.info("Sidebar hidden.")
         else:
-            dpg.show_item(SIDEBAR_TAG)
-            # Update the toggle button label
-            # Change to 'hide' symbol
-            dpg.set_item_label(SIDEBAR_TOGGLE_BTN_TAG, "«")
-            print("[StudyOS._toggle_sidebar] Sidebar shown.")
+            # Explicitly set width before showing to ensure it's restored
+            dpg.configure_item(current_sidebar_tag, width=self.sidebar_width)
+            dpg.show_item(current_sidebar_tag)
+            if dpg.does_item_exist(toggle_button_tag):
+                dpg.set_item_label(toggle_button_tag, "<")
+            else:
+                self.logger.warning(
+                    f"Sidebar toggle button '{toggle_button_tag}' not found when trying to set label.",
+                )
+            self.logger.info(f"Sidebar shown with width {self.sidebar_width}.")
 
     def _on_tab_selected(self, sender, app_data, user_data):
         """Callback executed when a module tab is selected."""
-        print(f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
+        print(
+            f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
 
         # Use the mapping we created during initialization
         module_key = self.tab_id_to_module.get(app_data)
@@ -397,7 +449,7 @@ class StudyOS:
                     asyncio.run(self.switch_module(module_key))
                 except RuntimeError as e:
                     print(
-                        f"[_on_tab_selected] RuntimeError running switch_module for {module_key}: {e}."
+                        f"[_on_tab_selected] RuntimeError running switch_module for {module_key}: {e}.",
                     )
                     try:
                         loop = asyncio.new_event_loop()
@@ -405,47 +457,49 @@ class StudyOS:
                         loop.run_until_complete(self.switch_module(module_key))
                     except Exception as inner_e:
                         print(
-                            f"[_on_tab_selected] Error running switch_module in new loop for {module_key}: {inner_e}"
+                            f"[_on_tab_selected] Error running switch_module in new loop for {module_key}: {inner_e}",
                         )
 
             thread = threading.Thread(target=run_async_switch, daemon=True)
             thread.start()
         else:
-            print(f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
-            print(f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
+            print(
+                f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
+            print(
+                f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
 
     async def _load_initial_module_view(self):
         print(
-            "[StudyOS._load_initial_module_view] Loading initial module view..."
+            "[StudyOS._load_initial_module_view] Loading initial module view...",
         )  # ADD LOG
         if self.registered_module_instances:
-            initial_module_key = list(self.registered_module_instances.keys())[0]
+            initial_module_key = list(
+                self.registered_module_instances.keys())[0]
             await self.switch_module(initial_module_key)  # Add await
         print(
-            "[StudyOS._load_initial_module_view] Initial module view loaded."
+            "[StudyOS._load_initial_module_view] Initial module view loaded.",
         )  # ADD LOG
 
     async def switch_module(self, module_key_or_instance: Union[str, BaseModule]):
         """Switches the main view to the specified module (now async)"""
         print(
-            f"[StudyOS.switch_module] Attempting to switch to module: {module_key_or_instance}"
+            f"[StudyOS.switch_module] Attempting to switch to module: {module_key_or_instance}",
         )  # ADD LOG
         module_instance: Optional[BaseModule] = None
         current_key_to_set: Optional[str] = None
 
         if isinstance(module_key_or_instance, str):
             current_key_to_set = module_key_or_instance
-            module_instance = self.core.module_registry.get(module_key_or_instance)
+            module_instance = self.core.module_registry.get(
+                module_key_or_instance)
             if not module_instance:
                 print(
-                    f"[StudyOS.switch_module] Error: Module key '{module_key_or_instance}' not found in registered instances."
+                    f"[StudyOS.switch_module] Error: Module key '{module_key_or_instance}' not found in registered instances.",
                 )
                 if dpg.does_item_exist(self.MODULE_VIEW_AREA_TAG):
-                    # Clear previous content before adding error message
-                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG, children_only=True)
-                    with dpg.group(
-                        parent=self.MODULE_VIEW_AREA_TAG
-                    ):  # Ensure parent exists
+                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG,
+                                    children_only=True)
+                    with dpg.group(parent=self.MODULE_VIEW_AREA_TAG):
                         dpg.add_text(
                             f"Error: Module '{module_key_or_instance}' could not be loaded.",
                             color=(255, 0, 0),
@@ -453,20 +507,19 @@ class StudyOS:
                 return
         elif isinstance(module_key_or_instance, BaseModule):
             module_instance = module_key_or_instance
-            # Find the key for the given instance
             for key, instance in self.registered_module_instances.items():
                 if instance == module_instance:
                     current_key_to_set = key
                     break
             if current_key_to_set is None:
                 print(
-                    f"[StudyOS.switch_module] Error: Provided module instance not found in registered_module_instances."
+                    "[StudyOS.switch_module] Error: Provided module instance not found in registered_module_instances.",
                 )
-                return  # This was the missing return
-            else:
-                print(
-                    f"[StudyOS.switch_module] Error: Invalid type for module_key_or_instance: {type(module_key_or_instance)}."
-                )
+                return
+        else:
+            print(
+                f"[StudyOS.switch_module] Error: Invalid type for module_key_or_instance: {type(module_key_or_instance)}.",
+            )
             return
 
         # MODULE_VIEW_AREA_TAG (the old way).
@@ -478,7 +531,7 @@ class StudyOS:
             dpg.delete_item(module_tab_content_tag, children_only=True)
         else:
             print(
-                f"[StudyOS.switch_module] Error: Tab content area '{module_tab_content_tag}' does not exist. Cannot build view."
+                f"[StudyOS.switch_module] Error: Tab content area '{module_tab_content_tag}' does not exist. Cannot build view.",
             )
             # Display error in the main area if tab area fails?
             # Or perhaps log and return.
@@ -486,32 +539,32 @@ class StudyOS:
 
         # Build and add the new module's view
         if hasattr(module_instance, "build_dpg_view") and callable(
-            module_instance.build_dpg_view
+            module_instance.build_dpg_view,
         ):
             try:
                 # --- Initialize DPG Tags (if applicable) --- START
                 if hasattr(module_instance, "initialize_dpg_tags") and callable(
-                    module_instance.initialize_dpg_tags
+                    module_instance.initialize_dpg_tags,
                 ):
                     print(
-                        f"[StudyOS.switch_module] Initializing DPG tags for module: {current_key_to_set}"
+                        f"[StudyOS.switch_module] Initializing DPG tags for module: {current_key_to_set}",
                     )
                     module_instance.initialize_dpg_tags()
                 # --- Initialize DPG Tags (if applicable) --- END
 
                 print(
-                    f"[StudyOS.switch_module] Building DPG view for module: {current_key_to_set} into {module_tab_content_tag}"
+                    f"[StudyOS.switch_module] Building DPG view for module: {current_key_to_set} into {module_tab_content_tag}",
                 )
                 # Pass the specific tab's content area tag as the parent
                 module_instance.build_dpg_view(
-                    parent_container_tag=module_tab_content_tag
+                    parent_container_tag=module_tab_content_tag,
                 )
                 print(
-                    f"[StudyOS.switch_module] Finished building DPG view for module: {current_key_to_set}"
+                    f"[StudyOS.switch_module] Finished building DPG view for module: {current_key_to_set}",
                 )  # ADD LOG
             except Exception as e:
                 print(
-                    f"[StudyOS.switch_module] Error building DPG view for {current_key_to_set}: {e}"
+                    f"[StudyOS.switch_module] Error building DPG view for {current_key_to_set}: {e}",
                 )
                 # Display error message within the tab's content area
                 if dpg.does_item_exist(module_tab_content_tag):
@@ -526,7 +579,7 @@ class StudyOS:
                     )
         else:
             print(
-                f"[StudyOS.switch_module] Module {current_key_to_set} does not have a callable build_dpg_view method."
+                f"[StudyOS.switch_module] Module {current_key_to_set} does not have a callable build_dpg_view method.",
             )
             # Display error message within the tab's content area
             if dpg.does_item_exist(module_tab_content_tag):
@@ -548,7 +601,7 @@ class StudyOS:
         ):
             try:
                 print(
-                    f"[StudyOS.switch_module] Calling load_data for {current_key_to_set}..."
+                    f"[StudyOS.switch_module] Calling load_data for {current_key_to_set}...",
                 )
                 # Properly handle async/sync load_data
                 if asyncio.iscoroutinefunction(module_instance.load_data):
@@ -558,22 +611,24 @@ class StudyOS:
                     loop = asyncio.get_event_loop()
                     await loop.run_in_executor(None, module_instance.load_data)
                 print(
-                    f"[StudyOS.switch_module] load_data for {current_key_to_set} finished."
+                    f"[StudyOS.switch_module] load_data for {current_key_to_set} finished.",
                 )
             except Exception as e:
                 print(
-                    f"[StudyOS.switch_module] Error calling load_data for {current_key_to_set}: {e}"
+                    f"[StudyOS.switch_module] Error calling load_data for {current_key_to_set}: {e}",
                 )
 
         self.current_module_key = current_key_to_set  # Use the determined key
-        print(f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
+        print(
+            f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
 
     def _handle_dpg_resize(self, sender, app_data):
         """Responsive layout handler for DPG viewport."""
         width = dpg.get_viewport_width()
         height = dpg.get_viewport_height()
         if dpg.does_item_exist(self.PRIMARY_WINDOW_TAG):
-            dpg.configure_item(self.PRIMARY_WINDOW_TAG, width=width, height=height)
+            dpg.configure_item(self.PRIMARY_WINDOW_TAG,
+                               width=width, height=height)
 
         nav_width = 200
         if dpg.does_item_exist(self.NAV_RAIL_TAG):
@@ -592,7 +647,7 @@ class StudyOS:
         # Actually, _setup_dpg_viewport_and_window handles this.
         self._setup_dpg_viewport_and_window()
         print(
-            "[StudyOS.run_dpg_app] Viewport setup called via _setup_dpg_viewport_and_window."
+            "[StudyOS.run_dpg_app] Viewport setup called via _setup_dpg_viewport_and_window.",
         )
 
         # Initialize theme manager first
@@ -614,7 +669,7 @@ class StudyOS:
             print("[StudyOS.run_dpg_app] Initial module view loaded successfully.")
         except Exception as e:
             print(
-                f"[StudyOS.run_dpg_app] CRITICAL ERROR loading initial module view: {e}"
+                f"[StudyOS.run_dpg_app] CRITICAL ERROR loading initial module view: {e}",
             )
             traceback.print_exc()
             # Optionally, display an error in the UI if possible at this stage
@@ -660,7 +715,8 @@ class StudyOS:
             return
 
         current_index = (
-            module_keys.index(self.current_module_key) if self.current_module_key else 0
+            module_keys.index(
+                self.current_module_key) if self.current_module_key else 0
         )
         new_index = (current_index - 1) % len(module_keys)
         # Create new event loop for sync context
@@ -697,7 +753,6 @@ class StudyOS:
         print("[StudyOS._save_window_state] Called (currently a stub).")
         # If it were to call async operations, it would use await here.
         # Example: await some_async_save_operation()
-        pass
 
     def get_active_module(self):
         if self.current_module_key:
@@ -718,7 +773,7 @@ class StudyOS:
                 # If dpg.add_font returns a string, this is unexpected for a font ID.
                 # Log this scenario and return the default font ID (0).
                 print(
-                    f"Warning: dpg.add_font returned a string ('{loaded_font_id}') for font '{font_name}'. Using default font ID."
+                    f"Warning: dpg.add_font returned a string ('{loaded_font_id}') for font '{font_name}'. Using default font ID.",
                 )
                 return 0
 
@@ -729,13 +784,12 @@ class StudyOS:
 
     # --- Font Handling Placeholder ---
     def _find_font_path(self, font_name: str) -> Optional[str]:
-        """
-        Placeholder for font finding logic.
+        """Placeholder for font finding logic.
         Should search system paths or bundled fonts.
         Returns the absolute path as a string if found, otherwise None.
         """
         print(
-            f"[StudyOS._find_font_path] Searching for font: {font_name} (Placeholder - returning None)"
+            f"[StudyOS._find_font_path] Searching for font: {font_name} (Placeholder - returning None)",
         )
         # TODO: Implement actual font searching logic (e.g., using matplotlib.font_manager or platform specific methods)
         # Example: Check common locations or a bundled 'fonts' directory
@@ -749,7 +803,7 @@ class StudyOS:
         """Switches to the Settings module tab via a thread to handle async call."""
         module_key = "Settings"
         print(
-            f"[StudyOS._menu_open_settings] Menu item clicked, preparing to switch to module: {module_key}"
+            f"[StudyOS._menu_open_settings] Menu item clicked, preparing to switch to module: {module_key}",
         )
 
         def run_async_switch_settings():
@@ -763,30 +817,31 @@ class StudyOS:
                 # and DPG callbacks are in a context where new_event_loop is problematic.
                 # A more robust solution might involve an asyncio queue if this becomes an issue.
                 print(
-                    f"[StudyOS._menu_open_settings] RuntimeError running switch_module for {module_key}: {e}. Trying without new loop."
+                    f"[StudyOS._menu_open_settings] RuntimeError running switch_module for {module_key}: {e}. Trying without new loop.",
                 )
                 # Fallback: try running directly if a loop is somehow available from DPG's context for the thread
                 try:
                     asyncio.run(
-                        self.switch_module(module_key)
+                        self.switch_module(module_key),
                     )  # This might still have issues with nested loops
                 except RuntimeError as e2:
                     print(
-                        f"[StudyOS._menu_open_settings] Nested RuntimeError for {module_key}: {e2}. Manual switch in main thread might be needed or queue."
+                        f"[StudyOS._menu_open_settings] Nested RuntimeError for {module_key}: {e2}. Manual switch in main thread might be needed or queue.",
                     )
                 except Exception as ex:
                     print(
-                        f"[StudyOS._menu_open_settings] General Exception running switch_module for {module_key}: {ex}"
+                        f"[StudyOS._menu_open_settings] General Exception running switch_module for {module_key}: {ex}",
                     )
             except Exception as ex_outer:
                 print(
-                    f"[StudyOS._menu_open_settings] Outer Exception for {module_key}: {ex_outer}"
+                    f"[StudyOS._menu_open_settings] Outer Exception for {module_key}: {ex_outer}",
                 )
 
-        thread = threading.Thread(target=run_async_switch_settings, daemon=True)
+        thread = threading.Thread(
+            target=run_async_switch_settings, daemon=True)
         thread.start()
         print(
-            f"[StudyOS._menu_open_settings] Thread started for switching to {module_key}"
+            f"[StudyOS._menu_open_settings] Thread started for switching to {module_key}",
         )
 
     def _menu_new_note(self, sender, app_data, user_data):
@@ -798,11 +853,12 @@ class StudyOS:
             and hasattr(notes_module, "_create_new_note")
             and callable(notes_module._create_new_note)
         ):
-            notes_module._create_new_note(sender, app_data)  # Pass through DPG args
+            notes_module._create_new_note(
+                sender, app_data)  # Pass through DPG args
             print("[StudyOS._menu_new_note] Called NotesModule._create_new_note().")
         else:
             print(
-                "[StudyOS._menu_new_note] NotesModule or its _create_new_note method not found/callable."
+                "[StudyOS._menu_new_note] NotesModule or its _create_new_note method not found/callable.",
             )
 
     def _menu_save_all_notes(self, sender, app_data, user_data):
@@ -819,7 +875,7 @@ class StudyOS:
             # Optionally, provide user feedback e.g., via a status bar update
         else:
             print(
-                "[StudyOS._menu_save_all_notes] NotesModule or its _save_notes method not found/callable."
+                "[StudyOS._menu_save_all_notes] NotesModule or its _save_notes method not found/callable.",
             )
 
     def _menu_about(self, sender, app_data, user_data):
@@ -829,7 +885,8 @@ class StudyOS:
             print(f"[StudyOS._menu_about] Showing '{about_window_tag}'.")
             dpg.configure_item(about_window_tag, show=True)
         else:
-            print(f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
+            print(
+                f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
 
     # --- Utility Methods ---
     def get_module_by_key(self, module_key: str) -> Optional[BaseModule]:

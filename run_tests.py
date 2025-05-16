@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import sys
 import time
 from pathlib import Path
@@ -9,7 +8,6 @@ from typing import Optional
 import dearpygui.dearpygui as dpg
 
 from core.app import StudyOS  # Main application class
-from core.config import AppConfig
 
 # Ensure the app's root directory is in the Python path
 # This allows a_sync_configs.run_tests.py to import modules from the main app
@@ -126,7 +124,8 @@ def run_tests_frame_callback(sender, app_data):
         try:
             passed = test_func(test_context_global)
         except Exception as e:
-            log_test_status(test_name, "ERROR", f"Unhandled exception in test: {e}")
+            log_test_status(test_name, "ERROR",
+                            f"Unhandled exception in test: {e}")
             passed = False  # Ensure it's marked as failed
 
         if (
@@ -232,7 +231,8 @@ def main():
             logger.info("DPG frame split and delay after initial module load.")
 
         except Exception as e:
-            logger.critical(f"Failed to load initial module view: {e}", exc_info=True)
+            logger.critical(
+                f"Failed to load initial module view: {e}", exc_info=True)
             # Decide if tests should be aborted here
             dpg.destroy_context()
             return

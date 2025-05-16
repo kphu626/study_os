@@ -1,6 +1,8 @@
-import dearpygui.dearpygui as dpg
-from typing import TYPE_CHECKING, Dict, Callable, Optional, Any, Union
 import asyncio
+import threading
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
+
+import dearpygui.dearpygui as dpg
 
 if TYPE_CHECKING:
     from core.app import StudyOS  # Changed from relative
@@ -34,12 +36,16 @@ class CommandBar:
     def _initialize_dpg_tags(self):
         """Generates DPG tags. Call after DPG context is created."""
         self.input_tag = dpg.generate_uuid()
-        self.status_message_tag = dpg.generate_uuid()
-        print("[CommandBar._initialize_dpg_tags] DPG tags initialized.")
+        self.status_message_tag = (
+            dpg.generate_uuid()
+        )  # Restore status message tag creation
+        print(
+            "[CommandBar._initialize_dpg_tags] DPG tags initialized."
+        )  # General log message
 
     def _set_status_message(self, message: str, is_error: bool = False):
         if self.status_message_tag is None or not dpg.does_item_exist(
-            self.status_message_tag
+            self.status_message_tag,
         ):
             # print("[CommandBar._set_status_message] Status message tag not ready or item doesn't exist.")
             return
@@ -51,7 +57,7 @@ class CommandBar:
 
     def _cmd_help(self):
         available_commands = "\nAvailable commands:\n" + "\n".join(
-            [f"- {cmd}" for cmd in self.commands.keys()]
+            [f"- {cmd}" for cmd in self.commands.keys()],
         )
         help_message = f"Type a command and press Enter. {available_commands}"
         self._set_status_message(help_message)
@@ -60,17 +66,37 @@ class CommandBar:
         print(f"[CommandBar] Attempting to open module: {module_key}")
         if hasattr(self.app, "switch_module") and callable(self.app.switch_module):
             if module_key in self.app.registered_module_instances:
-                # Properly handle async call in sync context
-                asyncio.run(self.app.switch_module(module_key))
+
+                def run_async_switch():
+                    try:
+                        # Ensure a new event loop for the thread
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.run_until_complete(
+                            self.app.switch_module(module_key))
+                    except RuntimeError as e_inner:
+                        # Log using print as logger might not be easily accessible or configured for threads here
+                        print(
+                            f"[CommandBar Thread] RuntimeError switching to {module_key}: {e_inner}"
+                        )
+                    except Exception as ex_inner:
+                        print(
+                            f"[CommandBar Thread] Exception switching to {module_key}: {ex_inner}"
+                        )
+
+                thread = threading.Thread(target=run_async_switch, daemon=True)
+                thread.start()
                 self._set_status_message(
-                    f"Opened module: {module_key.replace('Module', '')}"
+                    f"Opening: {module_key.replace('Module', '')}...",
                 )
             else:
                 self._set_status_message(
-                    f"Error: Module '{module_key}' not recognized.", is_error=True
+                    f"Error: Module '{module_key}' not recognized.",
+                    is_error=True,
                 )
         else:
-            self._set_status_message("Error: Cannot switch modules.", is_error=True)
+            self._set_status_message(
+                "Error: Cannot switch modules.", is_error=True)
 
     def _cmd_apply_theme(self, theme_name: str):
         print(f"[CommandBar] Attempting to apply theme: {theme_name}")
@@ -81,39 +107,47 @@ class CommandBar:
                 self._set_status_message(f"Applied theme: {theme_name}")
             else:
                 self._set_status_message(
-                    f"Error: Theme '{theme_name}' not found.", is_error=True
+                    f"Error: Theme '{theme_name}' not found.",
+                    is_error=True,
                 )
         else:
             self._set_status_message(
-                "Error: Cannot apply theme. Theme manager not available.", is_error=True
+                "Error: Cannot apply theme. Theme manager not available.",
+                is_error=True,
             )
 
     def build_dpg_view(self, parent_tag: str | int):
         """Builds the DPG UI for the command bar and adds it to the parent."""
-        if self.input_tag is None or self.status_message_tag is None:
+        if self.input_tag is None or self.status_message_tag is None:  # Check both tags
             print(
-                "[CommandBar.build_dpg_view] Error: DPG tags not initialized. Call _initialize_dpg_tags first."
+                "[CommandBar.build_dpg_view] Error: DPG tags not initialized. Call _initialize_dpg_tags first.",
             )
-            # Optionally, create a placeholder or error message in the UI
-            with dpg.group(parent=parent_tag):
-                dpg.add_text("Error: CommandBar not initialized.", color=(255, 0, 0))
+            if dpg.does_item_exist(parent_tag):
+                dpg.add_text(
+                    "Error: CommandBar not initialized.",
+                    color=(255, 0, 0),
+                    parent=parent_tag,
+                )
             return
 
+        # parent_tag is the new group inside NotesModule sidebar
+        # Command bar will be a vertical layout: input field, then status message
         with dpg.group(
             parent=parent_tag
-        ):  # Ensure this group is under the intended parent
-            with dpg.group(horizontal=True, width=-1):
-                dpg.add_input_text(
-                    tag=self.input_tag,
-                    hint="Enter command (e.g., 'help', 'open settings', 'theme calm green')...",
-                    width=-1,  # Take available width
-                    on_enter=True,
-                    callback=self._process_command_input,
-                    # user_data can be added if needed by the callback
-                )
+        ):  # Main container for command bar's own layout
+            dpg.add_input_text(
+                tag=self.input_tag,
+                hint="Enter command...",  # Simplified hint
+                width=-1,
+                on_enter=True,
+                callback=self._process_command_input,
+            )
             dpg.add_text(
-                "", tag=self.status_message_tag, color=(180, 180, 180, 255)
-            )  # Default subtle color
+                "",  # Initial status message
+                tag=self.status_message_tag,
+                color=(180, 180, 180, 255),  # Default color
+                wrap=-1,  # Allow status message to wrap if long
+            )
 
     def set_input_field_text(self, text: str):
         """Sets the text of the command bar's input field."""
@@ -123,7 +157,7 @@ class CommandBar:
             # dpg.focus_item(self.input_tag)
         else:
             print(
-                "[CommandBar.set_input_field_text] Error: Input tag not available or does not exist."
+                "[CommandBar.set_input_field_text] Error: Input tag not available or does not exist.",
             )
 
     def _process_command_input(self, sender: Any, app_data: Any, user_data: Any):
@@ -143,17 +177,18 @@ class CommandBar:
                 self.commands[command_text]()
             except Exception as e:
                 self._set_status_message(
-                    f"Error executing command '{command_text}': {e}", is_error=True
+                    f"Error executing command '{command_text}': {e}",
+                    is_error=True,
                 )
-                print(f"[CommandBar] Exception executing command '{command_text}': {e}")
+                print(
+                    f"[CommandBar] Exception executing command '{command_text}': {e}")
             dpg.set_value(self.input_tag, "")  # Clear input after processing
             return
 
         # Check for partial matches for theme commands (e.g. "theme calm" -> "theme calm green")
         # This is a simple prefix match, can be expanded
         if command_text.startswith("theme "):
-            partial_theme_name = command_text[len("theme ") :]
-            matched_theme = None
+            partial_theme_name = command_text[len("theme "):]
             for full_theme_command in self.commands.keys():
                 if (
                     full_theme_command.startswith("theme ")
@@ -166,7 +201,6 @@ class CommandBar:
                     # For now, let's stick to exact command matching primarily.
                     # This logic is tricky; exact match is better for now.
                     pass
-
         # If no exact match, show an error or 'unknown command'
         self._set_status_message(
             f"Unknown command: '{command_text}'. Type 'help' for options.",

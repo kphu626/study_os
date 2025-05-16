@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Union
 
 # Use date for simplicity if time is not needed
-from datetime import date, datetime
+from datetime import date
 
 
 class ProgressEntry(BaseModel):
@@ -23,7 +23,8 @@ class ProgressEntry(BaseModel):
                 ) from e
         if isinstance(v, date):
             return v
-        raise TypeError("Date must be a string in YYYY-MM-DD format or a date object.")
+        raise TypeError(
+            "Date must be a string in YYYY-MM-DD format or a date object.")
 
     class Config:
         populate_by_name = True  # Changed from allow_population_by_field_name

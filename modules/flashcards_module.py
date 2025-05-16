@@ -1,7 +1,6 @@
 import dearpygui.dearpygui as dpg
 import json
-from pathlib import Path
-from typing import TYPE_CHECKING, List, Union, Optional
+from typing import TYPE_CHECKING, List, Union
 from pydantic import ValidationError
 
 from .base_module import BaseModule
@@ -54,7 +53,8 @@ class FlashcardModule(BaseModule):
             dpg.add_text("Question:", tag=dpg.generate_uuid())  # Static label
             # Use a child window for a bordered area if desired
             with dpg.child_window(height=100, border=True):
-                dpg.add_text("Loading...", tag=self.dpg_question_text_tag, wrap=-1)
+                dpg.add_text(
+                    "Loading...", tag=self.dpg_question_text_tag, wrap=-1)
 
             dpg.add_spacer(height=5)
             dpg.add_text("Answer:", tag=dpg.generate_uuid())  # Static label
@@ -98,7 +98,8 @@ class FlashcardModule(BaseModule):
         self.cards.clear()
         if self.data_path.exists() and self.data_path.stat().st_size > 0:
             try:
-                raw_data = json.loads(self.data_path.read_text(encoding="utf-8"))
+                raw_data = json.loads(
+                    self.data_path.read_text(encoding="utf-8"))
                 if isinstance(raw_data, list):
                     for card_data in raw_data:
                         try:
@@ -108,7 +109,8 @@ class FlashcardModule(BaseModule):
                                 f"Skipping a flashcard due to validation error: {e.errors()}"
                             )
             except json.JSONDecodeError:
-                print(f"Error decoding JSON from {self.data_path} for flashcards.")
+                print(
+                    f"Error decoding JSON from {self.data_path} for flashcards.")
 
         self.current_card_index = 0
         self.is_answer_visible = False  # Reset visibility on load
@@ -145,7 +147,8 @@ class FlashcardModule(BaseModule):
             dpg.set_value(self.dpg_answer_text_tag, card.answer)
             dpg.configure_item(self.dpg_flip_button_tag, label="Hide Answer")
         else:
-            dpg.set_value(self.dpg_answer_text_tag, "(Click 'Flip' or 'Show Answer')")
+            dpg.set_value(self.dpg_answer_text_tag,
+                          "(Click 'Flip' or 'Show Answer')")
             dpg.configure_item(self.dpg_flip_button_tag, label="Show Answer")
 
         dpg.set_value(
@@ -162,7 +165,8 @@ class FlashcardModule(BaseModule):
     def _dpg_next_card(self, sender=0, app_data=0, user_data=0):
         if not self.cards:
             return
-        self.current_card_index = (self.current_card_index + 1) % len(self.cards)
+        self.current_card_index = (
+            self.current_card_index + 1) % len(self.cards)
         self.is_answer_visible = False  # Hide answer when moving to next card
         self._dpg_display_current_card()
 

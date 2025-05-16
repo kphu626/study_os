@@ -127,7 +127,7 @@ class SettingsModule(BaseModule):
                             width=80,  # Slightly wider now that it's standalone
                             step=1,
                             callback=lambda sender, app_data, user_data: self._update_font_size(
-                                app_data
+                                app_data,
                             ),
                             on_enter=True,  # Trigger callback on enter
                         )

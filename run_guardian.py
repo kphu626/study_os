@@ -11,7 +11,7 @@ try:
     from core.codebase_guardian import UnifiedGuardian
 except ImportError as e:
     print(
-        f"Error: Could not import UnifiedGuardian. Ensure you are in the project root and 'core' module is accessible."
+        "Error: Could not import UnifiedGuardian. Ensure you are in the project root and 'core' module is accessible."
     )
     print(f"Details: {e}")
     sys.exit(1)
