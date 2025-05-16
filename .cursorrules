@@ -14,6 +14,7 @@
 # ├── .cursorrules  # unwatched
 # ├── .donotwatchlist  # unwatched
 # ├── .gitattributes  # unwatched
+# ├── .gitignore  # unwatched
 # ├── .watchlist  # unwatched
 # ├── README.md  # unwatched
 # ├── app.log  # unwatched

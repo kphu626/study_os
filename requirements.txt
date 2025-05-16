@@ -2,3 +2,4 @@ pydantic
 numpy
 scikit-learn
 dearpygui
+markdown-it-py>=3.0.0
