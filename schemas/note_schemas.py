@@ -3,11 +3,15 @@ from datetime import datetime
 import uuid
 from typing import List, Optional
 
+from .file_schemas import FileAttachment
+
 
 class NoteBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     content: str = ""
     tags: Optional[List[str]] = Field(default_factory=list)
+    linked_note_ids: List[str] = Field(default_factory=list)
+    attachments: List[FileAttachment] = Field(default_factory=list)
     parent_id: Optional[str] = None
     is_folder: bool = False
     order: int = 0

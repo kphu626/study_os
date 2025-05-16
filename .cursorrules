@@ -1,0 +1,72 @@
+# === WATCHER HEADER START ===
+# File: .cursorrules
+# Managed by file watcher
+# Project Tree Structure:
+# 
+# NOTE TO ASSISTANT: Remember to add new files to .watchlist to receive headers.
+#       Files not in .watchlist won't receive headers, even if visible in this tree.
+# 
+# NOTE TO ASSISTANT: If you notice directories that don't add value to the context
+#       (like build outputs, cache, etc), suggest adding them to .donotwatchlist
+#       to keep the tree structure focused and clean.
+# 
+# ├── .cursorignore  # unwatched
+# ├── .cursorrules  # unwatched
+# ├── .donotwatchlist  # unwatched
+# ├── .gitattributes  # unwatched
+# ├── .watchlist  # unwatched
+# ├── README.md  # unwatched
+# ├── app.log  # unwatched
+# ├── config
+# │   └── app_settings.json  # unwatched
+# ├── core
+# │   ├── __init__.py  # unwatched
+# │   ├── app.py  # unwatched
+# │   ├── codebase_guardian.py  # unwatched
+# │   ├── command_bar.py  # unwatched
+# │   ├── config.py  # unwatched
+# │   ├── decorators.py  # unwatched
+# │   ├── gui_manager.py  # unwatched
+# │   └── theme_manager.py  # unwatched
+# ├── cursor-watchful-headers
+# │   ├── .donotwatchlist  # unwatched
+# │   ├── .watchlist  # unwatched
+# │   ├── LICENSE  # unwatched
+# │   ├── README.md  # unwatched
+# │   ├── install.py  # unwatched
+# │   ├── requirements.txt  # unwatched
+# │   └── watcher.py  # unwatched
+# ├── data
+# │   ├── notes.json  # unwatched
+# │   └── tasks.json  # unwatched
+# ├── dearpygui_docs.txt  # unwatched
+# ├── debug_data
+# │   ├── flashcards.json  # unwatched
+# │   └── notes.json  # unwatched
+# ├── main.py  # unwatched
+# ├── modules
+# │   ├── __init__.py  # unwatched
+# │   ├── base_module.py  # unwatched
+# │   ├── flashcards_module.py  # unwatched
+# │   ├── notes_module.py  # unwatched
+# │   ├── notes_ui_utils.py  # unwatched
+# │   ├── progress_module.py  # unwatched
+# │   ├── settings_module.py  # unwatched
+# │   ├── statistics_module.py  # unwatched
+# │   └── tasks_module.py  # unwatched
+# ├── requirements.txt  # unwatched
+# ├── run_guardian.py  # unwatched
+# ├── run_tests.py  # unwatched
+# ├── schemas
+# │   ├── __init__.py  # unwatched
+# │   ├── file_schemas.py  # unwatched
+# │   ├── flashcard_schema.py  # unwatched
+# │   ├── note_schemas.py  # unwatched
+# │   ├── progress_schema.py  # unwatched
+# │   └── task_create.py  # unwatched
+# ├── test_run.log  # unwatched
+# ├── themes
+# └── watcher.py  # unwatched
+# 
+# === WATCHER HEADER END ===
+# This file will be automatically updated with the project tree structure

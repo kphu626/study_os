@@ -20,7 +20,6 @@ class NotesDialogManager:
         # Unified New Item Dialog
         self.new_item_dialog_tag: Union[int, str] = dpg.generate_uuid()
         self.new_item_title_input_tag: Union[int, str] = dpg.generate_uuid()
-        self.new_item_icon_input_tag: Union[int, str] = dpg.generate_uuid()
         self.new_item_parent_dropdown_tag: Union[int, str] = dpg.generate_uuid()
         self.new_item_create_button_tag: Union[int, str] = dpg.generate_uuid()
 
@@ -30,12 +29,18 @@ class NotesDialogManager:
             None  # To store ID of item being renamed
         )
         self.rename_item_title_input_tag: Union[int, str] = dpg.generate_uuid()
-        self.rename_item_icon_input_tag: Union[int, str] = dpg.generate_uuid()
 
         # Delete Confirmation Dialog
         self.delete_confirm_dialog_tag: Union[int, str] = dpg.generate_uuid()
         self.delete_confirm_item_id_storage: Optional[str] = None
         self.delete_confirm_text_tag: Union[int, str] = dpg.generate_uuid()
+
+        # Move Item Dialog
+        self.move_item_dialog_tag: Union[int, str] = dpg.generate_uuid()
+        self.move_item_id_storage: Optional[str] = None
+        self.move_item_current_item_text_tag: Union[int, str] = dpg.generate_uuid()
+        self.move_item_parent_dropdown_tag: Union[int, str] = dpg.generate_uuid()
+        self.move_item_confirm_button_tag: Union[int, str] = dpg.generate_uuid()
 
         # State for dialogs
         self.creating_folder: bool = False  # To know what the new_item_dialog is for
@@ -50,6 +55,7 @@ class NotesDialogManager:
         self._define_new_item_dialog()
         self._define_rename_item_dialog()
         self._define_delete_confirmation_dialog()
+        self._define_move_item_dialog()
 
     def _center_dialog(self, dialog_tag: Union[int, str]):
         if dpg.does_item_exist(dialog_tag):
@@ -57,7 +63,7 @@ class NotesDialogManager:
             try:
                 dialog_width = dpg.get_item_configuration(dialog_tag)["width"]
                 dialog_height = dpg.get_item_configuration(dialog_tag)["height"]
-            except Exception:  # Changed from bare except
+            except Exception:  # Changed from bare except:
                 rect_size = dpg.get_item_rect_size(dialog_tag)
                 dialog_width = rect_size[0]
                 dialog_height = rect_size[1]
@@ -83,19 +89,13 @@ class NotesDialogManager:
                 show=False,
                 tag=self.new_item_dialog_tag,
                 width=400,
-                height=220,
+                height=180,
                 no_resize=True,
             ):
                 dpg.add_input_text(
                     label="Title",
                     tag=self.new_item_title_input_tag,
                     width=-1,
-                )
-                dpg.add_input_text(
-                    label="Icon (emoji)",
-                    tag=self.new_item_icon_input_tag,
-                    width=-1,
-                    hint="e.g., ✨ or 📁",
                 )
                 dpg.add_text("Parent Location:")
                 dpg.add_combo(
@@ -124,15 +124,9 @@ class NotesDialogManager:
         self.creating_folder = is_folder
         dialog_label = "Create New Folder" if is_folder else "Create New Note"
         default_title = "New Folder" if is_folder else "New Note"
-        default_icon = (
-            self.notes_module.ICON_FOLDER_DEFAULT
-            if is_folder
-            else self.notes_module.ICON_NOTE_DEFAULT
-        )
 
         dpg.configure_item(self.new_item_dialog_tag, label=dialog_label)
         dpg.set_value(self.new_item_title_input_tag, default_title)
-        dpg.set_value(self.new_item_icon_input_tag, default_icon)
 
         self.refresh_dropdown_items_in_dialogs()  # Ensure dropdown is populated
 
@@ -165,14 +159,13 @@ class NotesDialogManager:
 
     def _execute_create_item_dialog_callback(self, sender, app_data, user_data):
         title = dpg.get_value(self.new_item_title_input_tag).strip()
-        icon = dpg.get_value(self.new_item_icon_input_tag).strip()
         selected_parent_label = dpg.get_value(self.new_item_parent_dropdown_tag)
 
         if not title:
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
                     "Title cannot be empty.",
-                    duration=3,
+                    duration_ms=3000,  # GUIManager expects ms
                     level="warning",
                 )
             dpg.focus_item(self.new_item_title_input_tag)
@@ -187,7 +180,7 @@ class NotesDialogManager:
         dpg.configure_item(self.new_item_dialog_tag, show=False)
         self.notes_module.execute_create_new_item(
             title,
-            icon,
+            None,
             chosen_parent_id,
             self.creating_folder,
         )
@@ -200,19 +193,13 @@ class NotesDialogManager:
                 show=False,
                 tag=self.rename_item_dialog_tag,
                 width=400,
-                height=180,
+                height=150,
                 no_resize=True,
             ):
                 dpg.add_input_text(
                     label="New Title",
                     tag=self.rename_item_title_input_tag,
                     width=-1,
-                )
-                dpg.add_input_text(
-                    label="New Icon (emoji)",
-                    tag=self.rename_item_icon_input_tag,
-                    width=-1,
-                    hint="Leave blank to keep current",
                 )
                 dpg.add_spacer(height=10)
                 with dpg.group(horizontal=True):
@@ -233,10 +220,6 @@ class NotesDialogManager:
     def show_rename_item_dialog(self, item: "Note"):
         self.rename_item_id_storage = item.id
         dpg.set_value(self.rename_item_title_input_tag, item.title)
-        dpg.set_value(
-            self.rename_item_icon_input_tag,
-            item.icon if item.icon else "",
-        )  # Show current icon or empty
 
         self._center_dialog(self.rename_item_dialog_tag)
         dpg.configure_item(
@@ -248,35 +231,43 @@ class NotesDialogManager:
 
     def _execute_rename_item_dialog_callback(self, sender, app_data, user_data):
         new_title = dpg.get_value(self.rename_item_title_input_tag).strip()
-        new_icon = dpg.get_value(
-            self.rename_item_icon_input_tag,
-        ).strip()  # Empty string if user clears it
+
+        if not self.rename_item_id_storage:
+            self.logger.error("Rename item ID not found in storage.")
+            if hasattr(self.core, "gui_manager") and self.core.gui_manager:
+                self.core.gui_manager.show_toast(
+                    "Error: Could not determine item to rename.",
+                    duration_ms=3000,
+                    level="error",
+                )
+            dpg.configure_item(self.rename_item_dialog_tag, show=False)
+            return
 
         if not new_title:
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Title cannot be empty.",
-                    duration=3,
+                    "New title cannot be empty.",
+                    duration_ms=3000,
                     level="warning",
                 )
             dpg.focus_item(self.rename_item_title_input_tag)
             return
 
-        if self.rename_item_id_storage:
+        dpg.configure_item(self.rename_item_dialog_tag, show=False)
+        self.notes_module.execute_rename_item(
+            self.rename_item_id_storage,
+            new_title,
+            None,  # Icon is no longer part of rename dialog
+        )
+        self.rename_item_id_storage = None
+
+    def close_rename_item_dialog(self):
+        """Closes the rename item dialog if it exists and is visible."""
+        if dpg.does_item_exist(self.rename_item_dialog_tag) and dpg.is_item_shown(
+            self.rename_item_dialog_tag
+        ):
             dpg.configure_item(self.rename_item_dialog_tag, show=False)
-            self.notes_module.execute_rename_item(
-                self.rename_item_id_storage,
-                new_title,
-                new_icon,
-            )
-        else:
-            self.logger.error("Item ID for rename was not stored.")
-            if hasattr(self.core, "gui_manager") and self.core.gui_manager:
-                self.core.gui_manager.show_toast(
-                    "Error: No item selected for rename.",
-                    level="error",
-                )
-        self.rename_item_id_storage = None  # Clear stored ID
+            self.logger.debug("Rename item dialog closed.")
 
     def _define_delete_confirmation_dialog(self):
         if not dpg.does_item_exist(self.delete_confirm_dialog_tag):
@@ -326,36 +317,166 @@ class NotesDialogManager:
 
     def _execute_delete_confirm_dialog_callback(self, sender, app_data, user_data):
         if self.delete_confirm_item_id_storage:
+            self.notes_module.execute_delete_item(
+                self.delete_confirm_item_id_storage,
+            )
+            self.delete_confirm_item_id_storage = None  # Clear after use
+        dpg.configure_item(self.delete_confirm_dialog_tag, show=False)
+
+    def close_delete_item_dialog(self):
+        """Closes the delete confirmation dialog if it exists and is visible."""
+        if dpg.does_item_exist(self.delete_confirm_dialog_tag) and dpg.is_item_shown(
+            self.delete_confirm_dialog_tag
+        ):
             dpg.configure_item(self.delete_confirm_dialog_tag, show=False)
-            self.notes_module.execute_delete_item(self.delete_confirm_item_id_storage)
-        else:
-            self.logger.error("Item ID for delete confirmation was not stored.")
+            self.logger.debug("Delete confirmation dialog closed.")
+
+    def _define_move_item_dialog(self):
+        """Defines the DPG window for moving an item (note or folder)."""
+        if not dpg.does_item_exist(self.move_item_dialog_tag):
+            with dpg.window(
+                label="Move Item To...",
+                modal=True,
+                show=False,
+                tag=self.move_item_dialog_tag,
+                width=450,
+                height=200,  # Increased height for text and dropdown
+                no_resize=True,
+            ):
+                dpg.add_text("Moving item:", tag=self.move_item_current_item_text_tag)
+                dpg.add_spacer(height=5)
+                dpg.add_text("Select New Parent Folder:")
+                dpg.add_combo(
+                    tag=self.move_item_parent_dropdown_tag,
+                    items=[],  # Populated by refresh_dropdown_items_in_dialogs
+                    width=-1,
+                )
+                dpg.add_spacer(height=15)
+                with dpg.group(horizontal=True):
+                    dpg.add_button(
+                        label="Move Item",
+                        tag=self.move_item_confirm_button_tag,
+                        callback=self._execute_move_item_dialog_callback,
+                        width=-1,
+                    )
+                    dpg.add_button(
+                        label="Cancel",
+                        callback=lambda: dpg.configure_item(
+                            self.move_item_dialog_tag,
+                            show=False,
+                        ),
+                        width=-1,
+                    )
+        self.logger.debug(f"Move Item dialog ({self.move_item_dialog_tag}) defined.")
+
+    def show_move_item_dialog(self, item: "Note"):
+        """Shows the dialog to move an item to a new parent folder."""
+        if not item:
+            self.logger.error("show_move_item_dialog: No item provided.")
+            return
+
+        self.move_item_id_storage = item.id
+        item_type_str = "Folder" if item.is_folder else "Note"
+
+        # Update the text displaying which item is being moved
+        if dpg.does_item_exist(self.move_item_current_item_text_tag):
+            dpg.set_value(
+                self.move_item_current_item_text_tag,
+                f"Moving {item_type_str}: {item.title}",
+            )
+
+        # Populate and set the dropdown
+        # Exclude the item itself and its children from the list of possible parents
+        # Also exclude current parent? For now, allow moving to same parent (no-op)
+        self.refresh_dropdown_items_in_dialogs(
+            exclude_item_id=item.id, for_move_dialog=True
+        )
+
+        # Try to pre-select the current parent, if any, otherwise Root
+        target_parent_label = (
+            self.notes_module.ROOT_SENTINEL_VALUE
+        )  # Default to root label
+        if item.parent_id:
+            for label, folder_id_val in self.available_folders_for_dropdown:
+                if folder_id_val == item.parent_id:
+                    target_parent_label = label
+                    break
+
+        if dpg.does_item_exist(self.move_item_parent_dropdown_tag):
+            dpg.set_value(self.move_item_parent_dropdown_tag, target_parent_label)
+
+        self._center_dialog(self.move_item_dialog_tag)
+        dpg.configure_item(
+            self.move_item_dialog_tag,
+            show=True,
+            label=f"Move {item_type_str}: {item.title[:30]}...",
+        )
+        self.logger.debug(
+            f"Showing Move Item dialog for '{item.title}' (ID: {item.id})."
+        )
+
+    def _execute_move_item_dialog_callback(self, sender, app_data, user_data):
+        """Callback for the 'Move' button in the move item dialog."""
+        selected_parent_label = dpg.get_value(self.move_item_parent_dropdown_tag)
+
+        if not self.move_item_id_storage:
+            self.logger.error("Move item ID not found in storage during execute.")
             if hasattr(self.core, "gui_manager") and self.core.gui_manager:
                 self.core.gui_manager.show_toast(
-                    "Error: No item ID for deletion.",
+                    "Error: Could not determine item to move.",
+                    duration_ms=3000,
                     level="error",
                 )
-        self.delete_confirm_item_id_storage = None
+            dpg.configure_item(self.move_item_dialog_tag, show=False)
+            return
 
-    def refresh_dropdown_items_in_dialogs(self):
-        self.logger.debug("Refreshing dropdown items in dialogs if they exist.")
-        dropdown_labels = [item[0] for item in self.available_folders_for_dropdown]
+        new_parent_id: Optional[str] = self.get_parent_id_from_dropdown_label(
+            selected_parent_label
+        )
+
+        # The check for moving a folder into itself is done in NotesModule.execute_move_item
+        # Here we just pass the selected ID (None for root)
+
+        dpg.configure_item(self.move_item_dialog_tag, show=False)
+        self.notes_module.execute_move_item(
+            self.move_item_id_storage,
+            new_parent_id,
+        )
+        self.move_item_id_storage = None  # Clear after use
+
+    def refresh_dropdown_items_in_dialogs(
+        self, exclude_item_id: Optional[str] = None, for_move_dialog: bool = False
+    ):
+        # This method is called by NotesModule when its folder structure might change,
+        # or when a dialog needing this list is about to be shown.
+        self.notes_module._populate_available_folders_for_dialog_manager(
+            exclude_self_and_children_id=exclude_item_id if for_move_dialog else None
+        )
+        # self.available_folders_for_dropdown is now updated by the call above
+
+        dropdown_labels = [label for label, _ in self.available_folders_for_dropdown]
+
         if dpg.does_item_exist(self.new_item_parent_dropdown_tag):
-            current_value = None
-            try:  # Get current value if combo exists and has a value
-                current_value = dpg.get_value(self.new_item_parent_dropdown_tag)
-            except Exception:  # Changed from bare except
-                pass  # Ignore if it fails (e.g. no items yet)
-
+            current_value = dpg.get_value(self.new_item_parent_dropdown_tag)
             dpg.configure_item(self.new_item_parent_dropdown_tag, items=dropdown_labels)
-            if current_value and current_value in dropdown_labels:
-                dpg.set_value(
-                    self.new_item_parent_dropdown_tag,
-                    current_value,
-                )  # Try to preserve selection
-            elif dropdown_labels:  # Default to first item (Root)
+            if (
+                current_value in dropdown_labels
+            ):  # try to preserve selection if still valid
+                dpg.set_value(self.new_item_parent_dropdown_tag, current_value)
+            elif dropdown_labels:
                 dpg.set_value(self.new_item_parent_dropdown_tag, dropdown_labels[0])
-        # Add for other dialogs with folder dropdowns if any (e.g., move item dialog)
+
+        if dpg.does_item_exist(self.move_item_parent_dropdown_tag) and for_move_dialog:
+            current_value_move = dpg.get_value(self.move_item_parent_dropdown_tag)
+            # Filtered list is already set in self.available_folders_for_dropdown by the _populate call
+            dpg.configure_item(
+                self.move_item_parent_dropdown_tag, items=dropdown_labels
+            )
+
+            if current_value_move in dropdown_labels:  # try to preserve selection
+                dpg.set_value(self.move_item_parent_dropdown_tag, current_value_move)
+            elif dropdown_labels:  # set to first if previous is invalid or not set
+                dpg.set_value(self.move_item_parent_dropdown_tag, dropdown_labels[0])
 
     def get_parent_id_from_dropdown_label(self, selected_label: str) -> Optional[str]:
         """Helper to get the actual ID or sentinel from a dropdown label."""

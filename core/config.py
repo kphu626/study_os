@@ -9,15 +9,14 @@ CONFIG_FILE_PATH = Path("config/app_settings.json")
 
 class AppConfig(BaseModel):
     data_dir: Path = Field(default_factory=lambda: Path("data"))
-    notes_path: Path = Field(
-        default_factory=lambda: Path("data") / "notes.json")
-    tasks_path: Path = Field(
-        default_factory=lambda: Path("data") / "tasks.json")
+    notes_path: Path = Field(default_factory=lambda: Path("data") / "notes.json")
+    tasks_path: Path = Field(default_factory=lambda: Path("data") / "tasks.json")
     flashcards_path: Path = Field(
         default_factory=lambda: Path("data") / "flashcards.json"
     )
-    progress_path: Path = Field(
-        default_factory=lambda: Path("data") / "progress.json")
+    progress_path: Path = Field(default_factory=lambda: Path("data") / "progress.json")
+
+    assets_dir: Path = Field(default_factory=lambda: Path("data") / "assets")
 
     # Display settings
     # Will be set by ThemeManager default if None
@@ -46,16 +45,14 @@ class AppConfig(BaseModel):
                 with open(CONFIG_FILE_PATH, "r") as f:
                     data = json.load(f)
                 config = AppConfig(**data)
-                print(
-                    f"[AppConfig] Configuration loaded from {CONFIG_FILE_PATH}")
+                print(f"[AppConfig] Configuration loaded from {CONFIG_FILE_PATH}")
                 return config
             except json.JSONDecodeError:
                 print(
                     f"[AppConfig] Error decoding JSON from {CONFIG_FILE_PATH}. Using default config."
                 )
             except Exception as e:  # Catch other Pydantic validation errors or issues:
-                print(
-                    f"[AppConfig] Error loading config: {e}. Using default config.")
+                print(f"[AppConfig] Error loading config: {e}. Using default config.")
         else:
             print(
                 f"[AppConfig] Config file {CONFIG_FILE_PATH} not found. Using default config."
@@ -64,6 +61,7 @@ class AppConfig(BaseModel):
         # Ensure data directory exists for a new default config
         default_config = AppConfig()
         default_config.data_dir.mkdir(parents=True, exist_ok=True)
+        default_config.assets_dir.mkdir(parents=True, exist_ok=True)
         # Attempt to save the new default config immediately so it exists for next time.
         # This is a synchronous call for simplicity during initial load.
         try:

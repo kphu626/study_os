@@ -72,8 +72,7 @@ class CommandBar:
                         # Ensure a new event loop for the thread
                         loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(loop)
-                        loop.run_until_complete(
-                            self.app.switch_module(module_key))
+                        loop.run_until_complete(self.app.switch_module(module_key))
                     except RuntimeError as e_inner:
                         # Log using print as logger might not be easily accessible or configured for threads here
                         print(
@@ -95,8 +94,7 @@ class CommandBar:
                     is_error=True,
                 )
         else:
-            self._set_status_message(
-                "Error: Cannot switch modules.", is_error=True)
+            self._set_status_message("Error: Cannot switch modules.", is_error=True)
 
     def _cmd_apply_theme(self, theme_name: str):
         print(f"[CommandBar] Attempting to apply theme: {theme_name}")
@@ -180,15 +178,14 @@ class CommandBar:
                     f"Error executing command '{command_text}': {e}",
                     is_error=True,
                 )
-                print(
-                    f"[CommandBar] Exception executing command '{command_text}': {e}")
+                print(f"[CommandBar] Exception executing command '{command_text}': {e}")
             dpg.set_value(self.input_tag, "")  # Clear input after processing
             return
 
         # Check for partial matches for theme commands (e.g. "theme calm" -> "theme calm green")
         # This is a simple prefix match, can be expanded
         if command_text.startswith("theme "):
-            partial_theme_name = command_text[len("theme "):]
+            partial_theme_name = command_text[len("theme ") :]
             for full_theme_command in self.commands.keys():
                 if (
                     full_theme_command.startswith("theme ")

@@ -13,3 +13,25 @@ For fun, after a huge phase, record your progress in a markdown concisely. Updat
 Last words for you, Gemini: DONT FORGET TO MATCH AND CHECK YOUR IMPORTS. WE DONT LIKE CIRCULAR, MISMATCHED, MISNAMED, DUPLICATED CODE OR IMPORTS.
 
 Lookign for something? Grep it. Dont try to use the whole word. Even just parts of the word can work. Sometimes, we name things slightly differently. Dont grep once and think "ah, its definitely not here, Let me make that method/class for you" (in reality, we have it)
+
+
+
+
+> **Task Prompt:**
+> **Your goal:**
+>
+> * Review the entire codebase and autonomously complete the app as a customizable “knowledge hub” or “second brain” (similar to Notion), with a robust, user-friendly UI.
+> * Take initiative to identify missing features, incomplete workflows, or areas lacking polish, and implement them without waiting for further instructions.
+> * Ensure the following high-level features are present, fully functional, and well-integrated:
+>   * File explorer/manager for organizing notes, documents, and media
+>   * Rich text editing, tagging, and linking between notes
+>   * Search and filter functionality
+>   * Customizable views, themes, and layouts
+>   * Import/export of content
+>   * User-friendly navigation and accessibility
+> * For each feature, check if it exists, is partially implemented, or is missing, and then implement or improve it as needed.
+> * Make all code changes in a way that respects the existing architecture, style, and your coding rules.
+> * Leave clear TODOs, comments, or `progress.md` notes if you encounter ambiguity or limitations.
+> * Write or update tests for new/changed logic.
+> * Summarize your actions and any remaining open tasks at the end.
+>

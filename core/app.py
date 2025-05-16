@@ -2,7 +2,7 @@ import asyncio
 import logging
 import threading
 import traceback
-from typing import Dict, Optional, Union  # Added Callable and Union
+from typing import Dict, Optional, Union, TYPE_CHECKING  # Added TYPE_CHECKING
 
 import dearpygui.dearpygui as dpg  # Changed from flet
 
@@ -14,6 +14,7 @@ from core.command_bar import CommandBar  # Import CommandBar
 # from core import ThemeManager, UnifiedGuardian # ThemeManager is Flet specific for now
 from core.config import AppConfig
 from core.theme_manager import ThemeManager  # Import ThemeManager
+from core.gui_manager import GUIManager  # Added import
 from modules import (
     BaseModule,
     FlashcardModule,
@@ -34,9 +35,14 @@ from modules import (
 # Define logger at module level for StudyOS
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:  # Added for forward references
+    from .gui_manager import GUIManager
+
 
 class Core:
     """Central service container"""
+
+    gui_manager: "GUIManager"  # Added type hint
 
     def __init__(self, app: "StudyOS"):
         print("[Core.__init__] Initializing Core...")  # ADD LOG
@@ -46,6 +52,7 @@ class Core:
         self.guardian = UnifiedGuardian()
         # Initialize theme manager with core reference
         self.theme_manager = ThemeManager(self)  # Add self as parameter
+        self.gui_manager = GUIManager(self.app)  # Instantiated GUIManager
         print("[Core.__init__] Core initialized.")  # ADD LOG
 
 
@@ -197,8 +204,7 @@ class StudyOS:
                         # dpg.add_separator() # Removed original separator, button is now first
 
                         # --- Populate Sidebar with Note Tree --- START
-                        notes_module_instance = self.core.module_registry.get(
-                            "Notes")
+                        notes_module_instance = self.core.module_registry.get("Notes")
                         if (
                             notes_module_instance
                             and hasattr(notes_module_instance, "build_sidebar_view")
@@ -339,8 +345,7 @@ class StudyOS:
             # Add a Main Menu Bar
             with dpg.menu_bar(parent=self.PRIMARY_WINDOW_TAG):
                 with dpg.menu(label="File"):
-                    dpg.add_menu_item(label="New Note",
-                                      callback=self._menu_new_note)
+                    dpg.add_menu_item(label="New Note", callback=self._menu_new_note)
                     dpg.add_menu_item(
                         label="Save All Notes",
                         callback=self._menu_save_all_notes,
@@ -358,8 +363,7 @@ class StudyOS:
                     )
 
                 with dpg.menu(label="Help"):
-                    dpg.add_menu_item(label="About StudyOS",
-                                      callback=self._menu_about)
+                    dpg.add_menu_item(label="About StudyOS", callback=self._menu_about)
 
             # Define the "About" window (modal, initially hidden)
             # Ensure this tag is unique and managed if multiple modals are added later
@@ -434,8 +438,7 @@ class StudyOS:
 
     def _on_tab_selected(self, sender, app_data, user_data):
         """Callback executed when a module tab is selected."""
-        print(
-            f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
+        print(f"[_on_tab_selected] Tab selection: sender={sender}, app_data={app_data}")
 
         # Use the mapping we created during initialization
         module_key = self.tab_id_to_module.get(app_data)
@@ -463,18 +466,15 @@ class StudyOS:
             thread = threading.Thread(target=run_async_switch, daemon=True)
             thread.start()
         else:
-            print(
-                f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
-            print(
-                f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
+            print(f"[_on_tab_selected] Could not find module for tab ID: {app_data}")
+            print(f"[_on_tab_selected] Available mappings: {self.tab_id_to_module}")
 
     async def _load_initial_module_view(self):
         print(
             "[StudyOS._load_initial_module_view] Loading initial module view...",
         )  # ADD LOG
         if self.registered_module_instances:
-            initial_module_key = list(
-                self.registered_module_instances.keys())[0]
+            initial_module_key = list(self.registered_module_instances.keys())[0]
             await self.switch_module(initial_module_key)  # Add await
         print(
             "[StudyOS._load_initial_module_view] Initial module view loaded.",
@@ -490,15 +490,13 @@ class StudyOS:
 
         if isinstance(module_key_or_instance, str):
             current_key_to_set = module_key_or_instance
-            module_instance = self.core.module_registry.get(
-                module_key_or_instance)
+            module_instance = self.core.module_registry.get(module_key_or_instance)
             if not module_instance:
                 print(
                     f"[StudyOS.switch_module] Error: Module key '{module_key_or_instance}' not found in registered instances.",
                 )
                 if dpg.does_item_exist(self.MODULE_VIEW_AREA_TAG):
-                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG,
-                                    children_only=True)
+                    dpg.delete_item(self.MODULE_VIEW_AREA_TAG, children_only=True)
                     with dpg.group(parent=self.MODULE_VIEW_AREA_TAG):
                         dpg.add_text(
                             f"Error: Module '{module_key_or_instance}' could not be loaded.",
@@ -619,16 +617,14 @@ class StudyOS:
                 )
 
         self.current_module_key = current_key_to_set  # Use the determined key
-        print(
-            f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
+        print(f"[StudyOS.switch_module] Switched to module: {self.current_module_key}")
 
     def _handle_dpg_resize(self, sender, app_data):
         """Responsive layout handler for DPG viewport."""
         width = dpg.get_viewport_width()
         height = dpg.get_viewport_height()
         if dpg.does_item_exist(self.PRIMARY_WINDOW_TAG):
-            dpg.configure_item(self.PRIMARY_WINDOW_TAG,
-                               width=width, height=height)
+            dpg.configure_item(self.PRIMARY_WINDOW_TAG, width=width, height=height)
 
         nav_width = 200
         if dpg.does_item_exist(self.NAV_RAIL_TAG):
@@ -715,8 +711,7 @@ class StudyOS:
             return
 
         current_index = (
-            module_keys.index(
-                self.current_module_key) if self.current_module_key else 0
+            module_keys.index(self.current_module_key) if self.current_module_key else 0
         )
         new_index = (current_index - 1) % len(module_keys)
         # Create new event loop for sync context
@@ -800,66 +795,56 @@ class StudyOS:
         return None  # Default: Font not found
 
     def _menu_open_settings(self, sender, app_data, user_data):
-        """Switches to the Settings module tab via a thread to handle async call."""
-        module_key = "Settings"
-        print(
-            f"[StudyOS._menu_open_settings] Menu item clicked, preparing to switch to module: {module_key}",
-        )
+        self.logger.info("Menu: Open Settings triggered")
 
+        # Define an inner async function to run the switch_module
         def run_async_switch_settings():
             try:
-                # Ensure a new event loop for the thread if necessary
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(self.switch_module(module_key))
+                asyncio.run(self.switch_module("Settings"))
             except RuntimeError as e:
-                # This might happen if an event loop is already running in the main thread
-                # and DPG callbacks are in a context where new_event_loop is problematic.
-                # A more robust solution might involve an asyncio queue if this becomes an issue.
-                print(
-                    f"[StudyOS._menu_open_settings] RuntimeError running switch_module for {module_key}: {e}. Trying without new loop.",
+                # Handle cases where asyncio.run might conflict (e.g., if already in a running loop)
+                # This is a common issue when mixing sync DPG callbacks with async logic
+                self.logger.warning(
+                    f"RuntimeError in run_async_switch_settings: {e}. Trying another approach for settings."
                 )
-                # Fallback: try running directly if a loop is somehow available from DPG's context for the thread
-                try:
-                    asyncio.run(
-                        self.switch_module(module_key),
-                    )  # This might still have issues with nested loops
-                except RuntimeError as e2:
-                    print(
-                        f"[StudyOS._menu_open_settings] Nested RuntimeError for {module_key}: {e2}. Manual switch in main thread might be needed or queue.",
-                    )
-                except Exception as ex:
-                    print(
-                        f"[StudyOS._menu_open_settings] General Exception running switch_module for {module_key}: {ex}",
-                    )
-            except Exception as ex_outer:
-                print(
-                    f"[StudyOS._menu_open_settings] Outer Exception for {module_key}: {ex_outer}",
-                )
+                # Fallback or alternative way to switch if needed
+                # For now, just log. A robust solution might involve a dedicated async task queue for DPG.
 
-        thread = threading.Thread(
-            target=run_async_switch_settings, daemon=True)
+        # Run the async function in a new thread to avoid blocking DPG
+        # This is a common pattern for calling async code from sync DPG callbacks
+        thread = threading.Thread(target=run_async_switch_settings)
         thread.start()
-        print(
-            f"[StudyOS._menu_open_settings] Thread started for switching to {module_key}",
-        )
 
     def _menu_new_note(self, sender, app_data, user_data):
-        """Handles the File > New Note menu action."""
-        print("[StudyOS._menu_new_note] 'New Note' menu item selected.")
+        self.logger.info("Menu: New Note triggered")
         notes_module = self.get_module_by_key("Notes")
-        if (
-            isinstance(notes_module, NotesModule)
-            and hasattr(notes_module, "_create_new_note")
-            and callable(notes_module._create_new_note)
-        ):
-            notes_module._create_new_note(
-                sender, app_data)  # Pass through DPG args
-            print("[StudyOS._menu_new_note] Called NotesModule._create_new_note().")
+        if notes_module and isinstance(notes_module, NotesModule):
+            # Ensure the module is active before calling its actions, or call directly if appropriate
+            # For now, assume direct call is fine if module is loaded.
+            # notes_module._create_new_note() # Original incorrect call
+            notes_module._create_new_note_action()  # Corrected to _create_new_note_action
+            # If the Notes module isn't active, also switch to it?
+            if self.current_module_key != "Notes":
+
+                def run_async_switch_notes():
+                    try:
+                        asyncio.run(self.switch_module("Notes"))
+                    except RuntimeError as e:
+                        self.logger.warning(f"RuntimeError switching to Notes: {e}")
+
+                threading.Thread(target=run_async_switch_notes).start()
         else:
-            print(
-                "[StudyOS._menu_new_note] NotesModule or its _create_new_note method not found/callable.",
+            self.logger.warning(
+                "Could not create new note: Notes module not found or not an instance of NotesModule."
             )
+            if (
+                self.core
+                and hasattr(self.core, "gui_manager")
+                and self.core.gui_manager
+            ):
+                self.core.gui_manager.show_toast(
+                    "Notes module not available.", level="error"
+                )
 
     def _menu_save_all_notes(self, sender, app_data, user_data):
         """Handles the File > Save All Notes menu action."""
@@ -885,8 +870,7 @@ class StudyOS:
             print(f"[StudyOS._menu_about] Showing '{about_window_tag}'.")
             dpg.configure_item(about_window_tag, show=True)
         else:
-            print(
-                f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
+            print(f"[StudyOS._menu_about] Error: '{about_window_tag}' does not exist.")
 
     # --- Utility Methods ---
     def get_module_by_key(self, module_key: str) -> Optional[BaseModule]:

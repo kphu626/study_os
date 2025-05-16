@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Dict
 
 import aiofiles
-import autopep8
-import black
+
+# import autopep8 # Removed
+# import black # Removed
 import libcst as cst
 from libcst import MetadataWrapper, parse_module
 from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
@@ -21,7 +22,7 @@ class UnifiedGuardian:
         self.change_cache: Dict[Path, float] = {}
         self.debounce_time = 1.5  # Seconds
         self.doc = QuantumDocumenter(self)
-        self.doctor = CodebaseDoctor()
+        self.doctor = CodebaseDoctor(self)
 
     async def start(self):
         event_handler = GuardianHandler(self)
@@ -62,8 +63,7 @@ class UnifiedGuardian:
             self.show_notification(f"Processed {path.name}")
 
         except Exception as exc:
-            self.show_notification(
-                f"Error in {path.name}: {exc!s}", error=True)
+            self.show_notification(f"Error in {path.name}: {exc!s}", error=True)
 
     def show_notification(self, message: str, error: bool = False):
         color = "\033[91m" if error else "\033[92m"
@@ -92,6 +92,9 @@ class QuantumDocumenter:
 
 
 class CodebaseDoctor:
+    def __init__(self, guardian: UnifiedGuardian):
+        self.guardian = guardian
+
     async def heal(self, path: Path) -> bool:
         try:
             async with aiofiles.open(path) as f:
@@ -103,11 +106,11 @@ class CodebaseDoctor:
             # Phase 2: Apply AST-Based Safe Fixes
             safe_fixed = self._safe_ast_fixes(fixed_code)
 
-            # Phase 3: Format with Black
-            formatted = self._black_format(safe_fixed)
+            # Phase 3: Format and Fix with Ruff
+            final_code = await self._ruff_check_and_format(safe_fixed, path)
 
-            # Phase 4: PEP8 Cleanup
-            final_code = autopep8.fix_code(formatted)
+            # Phase 4: PEP8 Cleanup (Removed)
+            # final_code = autopep8.fix_code(formatted)
 
             async with aiofiles.open(path, "w") as f:
                 await f.write(final_code)
@@ -173,12 +176,92 @@ class CodebaseDoctor:
 
         return final_tree.code
 
-    def _black_format(self, code: str) -> str:
-        """Format with Black's strict mode"""
-        return black.format_str(
-            code,
-            mode=black.FileMode(line_length=88, string_normalization=True),
-        )
+    async def _ruff_check_and_format(self, code: str, file_path: Path) -> str:
+        """Format and fix code using Ruff."""
+        temp_file_path = None
+        try:
+            # Ruff works best with files, so we write to a temporary file.
+            # Using the original filename for context if Ruff uses it for config resolution.
+            # Create a temporary file with a similar name to the original for Ruff context
+            # This is a simplified approach; robust temp file handling might be needed.
+            # For --stdin-filename, we can pass it directly.
+
+            # Step 1: Format with `ruff format`
+            # Ruff format command: ruff format --stdin-filename "path/to/file.py" -
+            proc_format = await asyncio.create_subprocess_exec(
+                "ruff",
+                "format",
+                "--stdin-filename",
+                str(file_path),
+                "-",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            formatted_code_bytes, format_stderr_bytes = await proc_format.communicate(
+                input=code.encode("utf-8")
+            )
+
+            if proc_format.returncode != 0:
+                # Try to decode stderr for logging, but don't let it crash if it fails
+                try:
+                    format_stderr = format_stderr_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    format_stderr = "[Could not decode stderr for ruff format]"
+                self.guardian.show_notification(  # Assuming CodebaseDoctor has access to guardian or its logger
+                    f"Ruff format failed for {file_path.name}: {format_stderr}",
+                    error=True,
+                )
+                # Fallback to original code if formatting fails, or handle error differently
+                formatted_code = code
+            else:
+                formatted_code = formatted_code_bytes.decode("utf-8")
+
+            # Step 2: Fix with `ruff check --fix`
+            # Ruff check command: ruff check --fix --stdin-filename "path/to/file.py" -
+            proc_fix = await asyncio.create_subprocess_exec(
+                "ruff",
+                "check",
+                "--fix",
+                "--stdin-filename",
+                str(file_path),
+                "-",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            fixed_code_bytes, fix_stderr_bytes = await proc_fix.communicate(
+                input=formatted_code.encode("utf-8")
+            )
+
+            if proc_fix.returncode != 0:
+                try:
+                    fix_stderr = fix_stderr_bytes.decode("utf-8")
+                except UnicodeDecodeError:
+                    fix_stderr = "[Could not decode stderr for ruff check --fix]"
+                self.guardian.show_notification(
+                    f"Ruff check --fix failed for {file_path.name}: {fix_stderr}",
+                    error=True,
+                )
+                # Fallback to formatted code if fixing fails
+                final_code = formatted_code
+            else:
+                final_code = fixed_code_bytes.decode("utf-8")
+
+            return final_code
+
+        except FileNotFoundError:
+            # This typically means Ruff is not installed or not in PATH
+            self.guardian.show_notification(
+                "Ruff command not found. Please ensure Ruff is installed and in your PATH.",
+                error=True,
+            )
+            return code  # Return original code if Ruff isn't found
+        except Exception as e:
+            self.guardian.show_notification(
+                f"Error during Ruff processing for {file_path.name}: {e}", error=True
+            )
+            return code  # Fallback to original code on other errors
 
 
 class LoggerFixCommand(VisitorBasedCodemodCommand):
@@ -218,7 +301,7 @@ class SelfAdderCommand(VisitorBasedCodemodCommand):
         self_param = cst.Param(name=cst.Name("self"))
 
         # Prepend 'self' to existing parameters
-        new_params_tuple = (self_param,) + node.params.params
+        new_params_tuple = (self_param,) + tuple(node.params.params)
 
         new_params_node = node.params.with_changes(params=new_params_tuple)
 

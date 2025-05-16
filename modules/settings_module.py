@@ -126,13 +126,14 @@ class SettingsModule(BaseModule):
                             max_value=36,
                             width=80,  # Slightly wider now that it's standalone
                             step=1,
-                            callback=lambda sender, app_data, user_data: self._update_font_size(
+                            callback=lambda sender,
+                            app_data,
+                            user_data: self._update_font_size(
                                 app_data,
                             ),
                             on_enter=True,  # Trigger callback on enter
                         )
-                    dpg.add_button(label="Reset Fonts",
-                                   callback=self._reset_fonts)
+                    dpg.add_button(label="Reset Fonts", callback=self._reset_fonts)
 
             dpg.add_separator()
             dpg.add_text("Other settings will appear here.")
@@ -153,15 +154,13 @@ class SettingsModule(BaseModule):
             if actual_applied_theme := self.theme_manager.get_current_theme_name():
                 self.update_displayed_theme_name(actual_applied_theme)
                 if dpg.does_item_exist(self.dpg_theme_combo_tag):
-                    dpg.set_value(self.dpg_theme_combo_tag,
-                                  actual_applied_theme)
+                    dpg.set_value(self.dpg_theme_combo_tag, actual_applied_theme)
 
     def update_displayed_theme_name(self, theme_name: str):
         if not self.dpg_current_theme_text_tag:
             return
         if dpg.does_item_exist(self.dpg_current_theme_text_tag):
-            dpg.set_value(self.dpg_current_theme_text_tag,
-                          f"Current: {theme_name}")
+            dpg.set_value(self.dpg_current_theme_text_tag, f"Current: {theme_name}")
 
     def load_data(self):
         # print(f"[{self.__class__.__name__}] load_data called.")
@@ -269,8 +268,7 @@ class SettingsModule(BaseModule):
             if self.font_combo_tag is not None and dpg.does_item_exist(
                 self.font_combo_tag,
             ):
-                dpg.set_value(self.font_combo_tag,
-                              self.core.theme_manager.current_font)
+                dpg.set_value(self.font_combo_tag, self.core.theme_manager.current_font)
 
             # Use the ThemeManager's default constant for clarity
             from core.theme_manager import (

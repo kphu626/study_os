@@ -55,8 +55,7 @@ class StatisticsModule(BaseModule):
 
             dpg.add_spacer(height=10)
             dpg.add_text("Flashcards:", color=(180, 180, 180))
-            dpg.add_text("Total Flashcards: ",
-                         tag=self.dpg_flashcards_count_tag)
+            dpg.add_text("Total Flashcards: ", tag=self.dpg_flashcards_count_tag)
 
         self.load_data()  # Initial load of stats
 
@@ -111,11 +110,9 @@ class StatisticsModule(BaseModule):
         # Update DPG text items if they exist
         if dpg.is_dearpygui_running():  # Ensure DPG is active
             if dpg.does_item_exist(self.dpg_notes_count_tag):
-                dpg.set_value(self.dpg_notes_count_tag,
-                              f"Total Notes: {notes_count}")
+                dpg.set_value(self.dpg_notes_count_tag, f"Total Notes: {notes_count}")
             if dpg.does_item_exist(self.dpg_tasks_total_tag):
-                dpg.set_value(self.dpg_tasks_total_tag,
-                              f"Total Tasks: {tasks_total}")
+                dpg.set_value(self.dpg_tasks_total_tag, f"Total Tasks: {tasks_total}")
             if dpg.does_item_exist(self.dpg_tasks_completed_tag):
                 dpg.set_value(
                     self.dpg_tasks_completed_tag,
